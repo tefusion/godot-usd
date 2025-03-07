@@ -1,3 +1,9 @@
 [submodule "extern/godot-cpp"]
 	path = extern/godot-cpp
 	url = https://github.com/godotengine/godot-cpp.git
+[submodule "extern/tinyusdz"]
+	path = extern/tinyusdz
+	url = https://github.com/lighttransport/tinyusdz.git
+[submodule "extern/OpenSubdiv"]
+	path = extern/OpenSubdiv
+	url = https://github.com/PixarAnimationStudios/OpenSubdiv.git
