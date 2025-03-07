@@ -8,6 +8,12 @@ env = SConscript("extern/godot-cpp/SConstruct")
 env.Append(CXXFLAGS=['-fexceptions'])
 env.Append(CFLAGS=['-fexceptions'])
 
+cpp_defines = []
+if "CPPDEFINES" in env:
+    cpp_defines = env["CPPDEFINES"]
+cpp_defines.append("_USE_MATH_DEFINES")
+env.Append(CPPDEFINES=cpp_defines)
+
 env.Append(CPPPATH=["src/", "extern/tinyusdz/src", "extern/tinyusdz/src/external", "extern/tinyusdz/src/lz4", "extern/OpenSubdiv"])
 
 patterns = ["extern/tinyusdz/src/*.c", "extern/tinyusdz/src/*.cc", "extern/tinyusdz/src/*.cpp"]
