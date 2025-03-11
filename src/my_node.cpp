@@ -11,7 +11,13 @@
 #include "str-util.hh"
 #include "stream-reader.hh"
 #include "type_utils.h"
+#include "usdShade.hh"
 #include "usda-reader.hh"
+
+#include "tydra/attribute-eval.hh"
+#include "tydra/render-data.hh"
+#include "tydra/scene-access.hh"
+#include "tydra/shader-network.hh"
 
 using namespace godot;
 
@@ -38,6 +44,132 @@ void apply_euler_rotation(Transform3D &result_transform, const tinyusdz::XformOp
 				Math::deg_to_rad(angles.y),
 				Math::deg_to_rad(angles.z));
 		result_transform = result_transform * Transform3D(Basis::from_euler(euler_rad, order));
+	}
+}
+
+void eval_prim(const tinyusdz::Stage &stage, const tinyusdz::Prim &prim) {
+	std::string prim_name = prim.element_name();
+	const std::vector<tinyusdz::Prim> &children = prim.children();
+	UtilityFunctions::print("prim_name: ", prim_name.c_str());
+	for (const auto &child : children) {
+		std::string child_name = child.element_name();
+		std::string type = child.type_name();
+		UtilityFunctions::print("child_name: ", child_name.c_str(), " type: ", type.c_str());
+
+		if (child.is<tinyusdz::Xform>()) {
+			const tinyusdz::Xform *xform = child.as<tinyusdz::Xform>();
+			const std::vector<tinyusdz::XformOp> &transforms = xform->xformOps;
+
+			Transform3D result_transform;
+			for (const auto &transform : transforms) {
+				switch (transform.op_type) {
+					case tinyusdz::XformOp::OpType::Transform: {
+						Transform3D transform_matrix;
+						if (xform_get_value(transform, transform_matrix)) {
+							result_transform = result_transform * transform_matrix;
+						}
+						break;
+					}
+					case tinyusdz::XformOp::OpType::Translate: {
+						Vector3 translation;
+						if (xform_get_value(transform, translation)) {
+							result_transform = result_transform.translated(translation);
+						}
+						break;
+					}
+					case tinyusdz::XformOp::OpType::Scale: {
+						Vector3 scale;
+						if (xform_get_value(transform, scale)) {
+							result_transform.scale(scale);
+						}
+						break;
+					}
+					case tinyusdz::XformOp::OpType::RotateX: {
+						double angle;
+						if (xform_get_value(transform, angle)) {
+							result_transform.rotate(Vector3(1, 0, 0), Math::deg_to_rad(angle));
+						}
+						break;
+					}
+					case tinyusdz::XformOp::OpType::RotateY: {
+						double angle;
+						if (xform_get_value(transform, angle)) {
+							result_transform.rotate(Vector3(0, 1, 0), Math::deg_to_rad(angle));
+						}
+						break;
+					}
+					case tinyusdz::XformOp::OpType::RotateZ: {
+						double angle;
+						if (xform_get_value(transform, angle)) {
+							result_transform.rotate(Vector3(0, 0, 1), Math::deg_to_rad(angle));
+						}
+						break;
+					}
+					case tinyusdz::XformOp::OpType::RotateXYZ:
+						apply_euler_rotation(result_transform, transform, EULER_ORDER_XYZ);
+						break;
+					case tinyusdz::XformOp::OpType::RotateXZY:
+						apply_euler_rotation(result_transform, transform, EULER_ORDER_XZY);
+						break;
+					case tinyusdz::XformOp::OpType::RotateYXZ:
+						apply_euler_rotation(result_transform, transform, EULER_ORDER_YXZ);
+						break;
+					case tinyusdz::XformOp::OpType::RotateYZX:
+						apply_euler_rotation(result_transform, transform, EULER_ORDER_YZX);
+						break;
+					case tinyusdz::XformOp::OpType::RotateZXY:
+						apply_euler_rotation(result_transform, transform, EULER_ORDER_ZXY);
+						break;
+					case tinyusdz::XformOp::OpType::RotateZYX:
+						apply_euler_rotation(result_transform, transform, EULER_ORDER_ZYX);
+						break;
+
+					case tinyusdz::XformOp::OpType::Orient: {
+						Quaternion quaternion;
+						if (xform_get_value(transform, quaternion)) {
+							result_transform.basis = Basis(quaternion);
+						}
+						break;
+					}
+					case tinyusdz::XformOp::OpType::ResetXformStack:
+						result_transform = Transform3D(); // Reset to identity
+						break;
+				}
+			}
+
+			UtilityFunctions::print("result_transform: ", result_transform.basis.get_scale_local());
+		}
+
+		else if (child.is<tinyusdz::GeomMesh>()) {
+			const tinyusdz::GeomMesh *geom_mesh = child.as<tinyusdz::GeomMesh>();
+			std::string err;
+			tinyusdz::Path matPath;
+			const tinyusdz::Material *material{ nullptr };
+			bool ret = tinyusdz::tydra::GetBoundMaterial(stage, child.absolute_path(), /* purpose */ "", &matPath, &material, &err);
+			if (ret && material) {
+				UtilityFunctions::print("material: ", material->name.c_str());
+			}
+		} else if (child.is<tinyusdz::GeomSubset>()) {
+			const tinyusdz::GeomSubset *geom_subset = child.as<tinyusdz::GeomSubset>();
+			std::string err;
+			tinyusdz::Path matPath;
+			const tinyusdz::Material *material{ nullptr };
+			bool ret = tinyusdz::tydra::GetBoundMaterial(stage, child.absolute_path(), /* purpose */ "", &matPath, &material, &err);
+			if (ret && material) {
+				UtilityFunctions::print("material: ", material->name.c_str());
+			}
+
+			tinyusdz::Animatable<std::vector<int32_t>> indices_container;
+			ret = geom_subset->indices.get_value(&indices_container);
+			if (ret && indices_container.is_scalar()) {
+				std::vector<int32_t> face_indices;
+				indices_container.get_scalar(&face_indices);
+				UtilityFunctions::print("indices: ", face_indices.size());
+			}
+		}
+	}
+	for (const auto &child : children) {
+		eval_prim(stage, child);
 	}
 }
 
@@ -101,103 +233,17 @@ void MyNode::hello_node() {
 	tinyusdz::Stage stage = reader.get_stage();
 	auto root_prims = stage.root_prims();
 	for (const auto &prim : root_prims) {
-		std::string prim_name = prim.element_name();
-		const std::vector<tinyusdz::Prim> &children = prim.children();
-		UtilityFunctions::print("prim_name: ", prim_name.c_str());
-		for (const auto &child : children) {
-			std::string child_name = child.element_name();
-			std::string type = child.type_name();
-			UtilityFunctions::print("child_name: ", child_name.c_str(), " type: ", type.c_str());
-
-			if (child.is<tinyusdz::Xform>()) {
-				const tinyusdz::Xform *xform = child.as<tinyusdz::Xform>();
-				const std::vector<tinyusdz::XformOp> &transforms = xform->xformOps;
-
-				Transform3D result_transform;
-				for (const auto &transform : transforms) {
-					switch (transform.op_type) {
-						case tinyusdz::XformOp::OpType::Transform: {
-							Transform3D transform_matrix;
-							if (xform_get_value(transform, transform_matrix)) {
-								result_transform = result_transform * transform_matrix;
-							}
-							break;
-						}
-						case tinyusdz::XformOp::OpType::Translate: {
-							Vector3 translation;
-							if (xform_get_value(transform, translation)) {
-								result_transform = result_transform.translated(translation);
-							}
-							break;
-						}
-						case tinyusdz::XformOp::OpType::Scale: {
-							Vector3 scale;
-							if (xform_get_value(transform, scale)) {
-								result_transform.scale(scale);
-							}
-							break;
-						}
-						case tinyusdz::XformOp::OpType::RotateX: {
-							double angle;
-							if (xform_get_value(transform, angle)) {
-								result_transform.rotate(Vector3(1, 0, 0), Math::deg_to_rad(angle));
-							}
-							break;
-						}
-						case tinyusdz::XformOp::OpType::RotateY: {
-							double angle;
-							if (xform_get_value(transform, angle)) {
-								result_transform.rotate(Vector3(0, 1, 0), Math::deg_to_rad(angle));
-							}
-							break;
-						}
-						case tinyusdz::XformOp::OpType::RotateZ: {
-							double angle;
-							if (xform_get_value(transform, angle)) {
-								result_transform.rotate(Vector3(0, 0, 1), Math::deg_to_rad(angle));
-							}
-							break;
-						}
-						case tinyusdz::XformOp::OpType::RotateXYZ:
-							apply_euler_rotation(result_transform, transform, EULER_ORDER_XYZ);
-							break;
-						case tinyusdz::XformOp::OpType::RotateXZY:
-							apply_euler_rotation(result_transform, transform, EULER_ORDER_XZY);
-							break;
-						case tinyusdz::XformOp::OpType::RotateYXZ:
-							apply_euler_rotation(result_transform, transform, EULER_ORDER_YXZ);
-							break;
-						case tinyusdz::XformOp::OpType::RotateYZX:
-							apply_euler_rotation(result_transform, transform, EULER_ORDER_YZX);
-							break;
-						case tinyusdz::XformOp::OpType::RotateZXY:
-							apply_euler_rotation(result_transform, transform, EULER_ORDER_ZXY);
-							break;
-						case tinyusdz::XformOp::OpType::RotateZYX:
-							apply_euler_rotation(result_transform, transform, EULER_ORDER_ZYX);
-							break;
-
-						case tinyusdz::XformOp::OpType::Orient: {
-							Quaternion quaternion;
-							if (xform_get_value(transform, quaternion)) {
-								result_transform.basis = Basis(quaternion);
-							}
-							break;
-						}
-						case tinyusdz::XformOp::OpType::ResetXformStack:
-							result_transform = Transform3D(); // Reset to identity
-							break;
-					}
-				}
-
-				UtilityFunctions::print("result_transform: ", result_transform.basis.get_scale_local());
-			}
-
-			else if (child.is<tinyusdz::GeomMesh>()) {
-				const tinyusdz::GeomMesh *geom_mesh = child.as<tinyusdz::GeomMesh>();
-			}
-		}
+		eval_prim(stage, prim);
 	}
+
+	using MeshMap = std::map<std::string, const tinyusdz::GeomMesh *>;
+	MeshMap meshmap;
+	tinyusdz::tydra::ListPrims(stage, meshmap);
+	//print meshmap keys
+	for (const auto &pair : meshmap) {
+		UtilityFunctions::print("meshmap key: ", pair.first.c_str());
+	}
+
 	std::string exportString = stage.ExportToString();
 	UtilityFunctions::print("stage: ", exportString.c_str());
 }
