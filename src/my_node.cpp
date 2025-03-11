@@ -166,6 +166,16 @@ void eval_prim(const tinyusdz::Stage &stage, const tinyusdz::Prim &prim) {
 				indices_container.get_scalar(&face_indices);
 				UtilityFunctions::print("indices: ", face_indices.size());
 			}
+		} else if (child.is<tinyusdz::Shader>()) {
+			const tinyusdz::Shader *shader = child.as<tinyusdz::Shader>();
+			if (shader->value.type_id() == tinyusdz::value::TYPE_ID_IMAGING_PREVIEWSURFACE) {
+				const tinyusdz::UsdPreviewSurface *preview_surface = shader->value.as<tinyusdz::UsdPreviewSurface>();
+				tinyusdz::value::color3f diffuse_color;
+				bool ret = preview_surface->diffuseColor.get_value().get_scalar(&diffuse_color);
+				if (ret) {
+					UtilityFunctions::print("diffuse_color: ", to_variant(diffuse_color));
+				}
+			}
 		}
 	}
 	for (const auto &child : children) {
@@ -236,14 +246,6 @@ void MyNode::hello_node() {
 		eval_prim(stage, prim);
 	}
 
-	using MeshMap = std::map<std::string, const tinyusdz::GeomMesh *>;
-	MeshMap meshmap;
-	tinyusdz::tydra::ListPrims(stage, meshmap);
-	//print meshmap keys
-	for (const auto &pair : meshmap) {
-		UtilityFunctions::print("meshmap key: ", pair.first.c_str());
-	}
-
-	std::string exportString = stage.ExportToString();
-	UtilityFunctions::print("stage: ", exportString.c_str());
+	//std::string exportString = stage.ExportToString();
+	//UtilityFunctions::print("stage: ", exportString.c_str());
 }
