@@ -17,12 +17,14 @@ class UsdStage : public RefCounted {
 private:
 	std::shared_ptr<tinyusdz::Stage> _stage;
 
+protected:
+	static void _bind_methods();
+
 public:
 	static tinyusdz::Stage *load_stage(const String &path);
 	static Ref<UsdStage> create(std::shared_ptr<tinyusdz::Stage> stage);
 
 	bool load(const String &path);
-	static void _bind_methods();
 	bool is_valid() const;
 
 	Ref<UsdPrim> get_prim_at_path(Ref<UsdPath> path) const;

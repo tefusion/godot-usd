@@ -1,27 +1,26 @@
 #include "usd_prim.h"
+#include "core/usd_prim_type.h"
 #include "value-types.hh"
 
 namespace {
-UsdPrim::UsdPrimType get_prim_type(const tinyusdz::Prim &prim) {
+UsdPrimType::Type get_prim_type(const tinyusdz::Prim &prim) {
 	switch (prim.type_id()) {
 		case tinyusdz::value::TYPE_ID_GEOM_XFORM:
-			return UsdPrim::USD_PRIM_TYPE_XFORM;
+			return UsdPrimType::USD_PRIM_TYPE_XFORM;
 		case tinyusdz::value::TYPE_ID_GEOM_MESH:
-			return UsdPrim::USD_PRIM_TYPE_MESH;
+			return UsdPrimType::USD_PRIM_TYPE_MESH;
 		case tinyusdz::value::TYPE_ID_GEOM_CAMERA:
-			return UsdPrim::USD_PRIM_TYPE_CAMERA;
+			return UsdPrimType::USD_PRIM_TYPE_CAMERA;
 		case tinyusdz::value::TYPE_ID_MATERIAL:
-			return UsdPrim::USD_PRIM_TYPE_MATERIAL;
+			return UsdPrimType::USD_PRIM_TYPE_MATERIAL;
 		case tinyusdz::value::TYPE_ID_SHADER:
-			return UsdPrim::USD_PRIM_TYPE_SHADER;
+			return UsdPrimType::USD_PRIM_TYPE_SHADER;
 		case tinyusdz::value::TYPE_ID_SCOPE:
-			return UsdPrim::USD_PRIM_TYPE_SCOPE;
+			return UsdPrimType::USD_PRIM_TYPE_SCOPE;
 		case tinyusdz::value::TYPE_ID_GEOM_GEOMSUBSET:
-			return UsdPrim::USD_PRIM_TYPE_GEOM_SUBSET;
-		//case tinyusdz::value::TYPE_ID_LUX_DOME:
-		//TODO: check what lights we can support
+			return UsdPrimType::USD_PRIM_TYPE_GEOM_SUBSET;
 		default:
-			return UsdPrim::USD_PRIM_TYPE_UNKNOWN;
+			return UsdPrimType::USD_PRIM_TYPE_UNKNOWN;
 	}
 }
 } //namespace
@@ -46,15 +45,7 @@ void UsdPrim::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_path"), &UsdPrim::get_path);
 	ClassDB::bind_method(D_METHOD("set_path", "path"), &UsdPrim::set_path);
 	ClassDB::bind_method(D_METHOD("get_children"), &UsdPrim::get_children);
-
-	BIND_ENUM_CONSTANT(USD_PRIM_TYPE_XFORM);
-	BIND_ENUM_CONSTANT(USD_PRIM_TYPE_MESH);
-	BIND_ENUM_CONSTANT(USD_PRIM_TYPE_CAMERA);
-	BIND_ENUM_CONSTANT(USD_PRIM_TYPE_MATERIAL);
-	BIND_ENUM_CONSTANT(USD_PRIM_TYPE_SHADER);
-	BIND_ENUM_CONSTANT(USD_PRIM_TYPE_SCOPE);
-	BIND_ENUM_CONSTANT(USD_PRIM_TYPE_GEOM_SUBSET);
-	BIND_ENUM_CONSTANT(USD_PRIM_TYPE_UNKNOWN);
+	ClassDB::bind_method(D_METHOD("get_value"), &UsdPrim::get_value);
 }
 
 String UsdPrim::get_type_name() const {
@@ -68,10 +59,10 @@ String UsdPrim::get_type_name() const {
 	return String(prim->type_name().c_str());
 }
 
-UsdPrim::UsdPrimType UsdPrim::get_type() const {
+UsdPrimType::Type UsdPrim::get_type() const {
 	const tinyusdz::Prim *prim = internal_prim();
 	if (!prim)
-		return USD_PRIM_TYPE_UNKNOWN;
+		return UsdPrimType::USD_PRIM_TYPE_UNKNOWN;
 	return get_prim_type(*prim);
 }
 
@@ -94,6 +85,22 @@ TypedArray<UsdPrim> UsdPrim::get_children() const {
 	}
 
 	return children;
+}
+
+Ref<UsdPrimValue> UsdPrim::get_value() const {
+	if (!is_valid())
+		return Ref<UsdPrimValue>();
+
+	const tinyusdz::Prim *prim = internal_prim();
+	if (!prim)
+		return Ref<UsdPrimValue>();
+
+	switch (get_prim_type(*prim)) {
+		case UsdPrimType::USD_PRIM_TYPE_XFORM:
+			return UsdPrimValueXform::create(prim->as<tinyusdz::Xform>());
+		default:
+			return Ref<UsdPrimValue>();
+	}
 }
 
 bool UsdPrim::is_valid() const {

@@ -1,8 +1,11 @@
 extends Node
 
 func process_prim(prim: UsdPrim):
-	if prim.get_type() == UsdPrim.USD_PRIM_TYPE_UNKNOWN:
+	if prim.get_type() == UsdPrimType.USD_PRIM_TYPE_UNKNOWN:
 		print("Unknown type ", prim.get_type_name())
+	elif prim.get_type() == UsdPrimType.USD_PRIM_TYPE_XFORM:
+		var value: UsdPrimValueXform = prim.get_value()
+		print(value)
 	else:
 		print("Known type ", prim.get_type(), " ", prim.get_type_name())
 	
