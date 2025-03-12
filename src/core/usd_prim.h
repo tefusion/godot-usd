@@ -20,10 +20,10 @@ public:
 		USD_PRIM_TYPE_XFORM,
 		USD_PRIM_TYPE_MESH,
 		USD_PRIM_TYPE_CAMERA,
-		USD_PRIM_TYPE_LIGHT,
 		USD_PRIM_TYPE_MATERIAL,
 		USD_PRIM_TYPE_SHADER,
-		USD_PRIM_TYPE_TEXTURE,
+		USD_PRIM_TYPE_SCOPE,
+		USD_PRIM_TYPE_GEOM_SUBSET,
 		USD_PRIM_TYPE_UNKNOWN,
 	};
 
@@ -32,12 +32,15 @@ public:
 
 	String get_type_name() const;
 	UsdPrimType get_type() const;
-	int get_type_gd() const;
 
 	bool is_valid() const;
 
 	void set_path(Ref<UsdPath> path);
 	Ref<UsdPath> get_path() const;
+
+	TypedArray<UsdPrim> get_children() const;
+
+	const tinyusdz::Prim *internal_prim() const;
 
 	UsdPrim();
 };
