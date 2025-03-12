@@ -8,6 +8,8 @@ env = SConscript("extern/godot-cpp/SConstruct")
 env.Append(CXXFLAGS=['-fexceptions'])
 env.Append(CFLAGS=['-fexceptions'])
 
+env.Tool('compilation_db')
+
 cpp_defines = []
 if "CPPDEFINES" in env:
     cpp_defines = env["CPPDEFINES"]
@@ -87,7 +89,7 @@ opensubdiv_sources = [
 opensubdiv_sources = [f"{opensubdiv_dir}/{file}" for file in opensubdiv_sources]
 
 # Combine the sources
-sources = Glob("src/*.cpp") + tinyusdz_sources + opensubdiv_sources
+sources = Glob("src/**/*.cpp") + Glob("src/*.cpp") + tinyusdz_sources + opensubdiv_sources
 
 addon_path = "project/addons/godot_usd"
 extension_name = "godot_usd"
@@ -122,5 +124,9 @@ scons_cache_path = os.environ.get("SCONS_CACHE")
 if scons_cache_path is not None:
     CacheDir(scons_cache_path)
     print("SCons cache is enabled. Cache path: '" + scons_cache_path + "'")
+
+env["COMPILATIONDB_USE_ABSPATH"] = True
+compile_commands = env.CompilationDatabase()
+Alias('compdb', compile_commands)
 
 Default(library)
