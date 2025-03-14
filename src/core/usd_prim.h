@@ -24,7 +24,7 @@ public:
 	static Ref<UsdPrim> create(std::shared_ptr<tinyusdz::Stage> stage, const tinyusdz::Path &path);
 
 	String get_type_name() const;
-	UsdPrimType::Type get_type() const; // Update return type
+	UsdPrimType::Type get_type() const;
 
 	bool is_valid() const;
 

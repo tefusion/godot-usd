@@ -1,5 +1,6 @@
 #include "usd_prim.h"
 #include "core/usd_prim_type.h"
+#include "core/usd_prim_types.h"
 #include "value-types.hh"
 
 namespace {
@@ -91,16 +92,7 @@ Ref<UsdPrimValue> UsdPrim::get_value() const {
 	if (!is_valid())
 		return Ref<UsdPrimValue>();
 
-	const tinyusdz::Prim *prim = internal_prim();
-	if (!prim)
-		return Ref<UsdPrimValue>();
-
-	switch (get_prim_type(*prim)) {
-		case UsdPrimType::USD_PRIM_TYPE_XFORM:
-			return UsdPrimValueXform::create(prim->as<tinyusdz::Xform>());
-		default:
-			return Ref<UsdPrimValue>();
-	}
+	return UsdPrimValue::create(this);
 }
 
 bool UsdPrim::is_valid() const {

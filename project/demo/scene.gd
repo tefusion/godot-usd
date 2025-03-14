@@ -6,6 +6,9 @@ func process_prim(prim: UsdPrim):
 	elif prim.get_type() == UsdPrimType.USD_PRIM_TYPE_XFORM:
 		var value: UsdPrimValueXform = prim.get_value()
 		print(value)
+	elif prim.get_type() == UsdPrimType.USD_PRIM_TYPE_MESH:
+		var value: UsdPrimValueGeomMesh = prim.get_value()
+		print(value)
 	else:
 		print("Known type ", prim.get_type(), " ", prim.get_type_name())
 	
