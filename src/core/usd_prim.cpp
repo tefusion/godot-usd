@@ -90,7 +90,7 @@ Ref<UsdPrimValue> UsdPrim::get_value() const {
 	if (!is_valid())
 		return Ref<UsdPrimValue>();
 
-	return UsdPrimValue::create(this->internal_prim());
+	return UsdPrimValue::create(this->internal_prim(), _stage);
 }
 
 bool UsdPrim::is_valid() const {

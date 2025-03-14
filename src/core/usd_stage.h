@@ -11,6 +11,8 @@
 
 using namespace godot;
 
+/// Represents a USD stage
+/// Once loaded can't change values so this is a read-only object
 class UsdStage : public RefCounted {
 	GDCLASS(UsdStage, RefCounted);
 
