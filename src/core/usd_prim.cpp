@@ -3,9 +3,8 @@
 #include "core/usd_prim_types.h"
 #include "value-types.hh"
 
-namespace {
-UsdPrimType::Type get_prim_type(const tinyusdz::Prim &prim) {
-	switch (prim.type_id()) {
+UsdPrimType::Type UsdPrim::get_prim_type(const tinyusdz::Prim *prim) {
+	switch (prim->type_id()) {
 		case tinyusdz::value::TYPE_ID_GEOM_XFORM:
 			return UsdPrimType::USD_PRIM_TYPE_XFORM;
 		case tinyusdz::value::TYPE_ID_GEOM_MESH:
@@ -24,7 +23,6 @@ UsdPrimType::Type get_prim_type(const tinyusdz::Prim &prim) {
 			return UsdPrimType::USD_PRIM_TYPE_UNKNOWN;
 	}
 }
-} //namespace
 
 Ref<UsdPrim> UsdPrim::create(std::shared_ptr<tinyusdz::Stage> stage, const tinyusdz::Path &path) {
 	if (!stage) {
@@ -64,7 +62,7 @@ UsdPrimType::Type UsdPrim::get_type() const {
 	const tinyusdz::Prim *prim = internal_prim();
 	if (!prim)
 		return UsdPrimType::USD_PRIM_TYPE_UNKNOWN;
-	return get_prim_type(*prim);
+	return UsdPrim::get_prim_type(prim);
 }
 
 void UsdPrim::set_path(Ref<UsdPath> path) {
@@ -92,7 +90,7 @@ Ref<UsdPrimValue> UsdPrim::get_value() const {
 	if (!is_valid())
 		return Ref<UsdPrimValue>();
 
-	return UsdPrimValue::create(this);
+	return UsdPrimValue::create(this->internal_prim());
 }
 
 bool UsdPrim::is_valid() const {

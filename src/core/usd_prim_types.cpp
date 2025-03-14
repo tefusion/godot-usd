@@ -7,12 +7,12 @@
 #include "type_utils.h"
 #include "usdGeom.hh"
 
-Ref<UsdPrimValue> UsdPrimValue::create(const UsdPrim *p_prim) {
+Ref<UsdPrimValue> UsdPrimValue::create(const tinyusdz::Prim *p_prim) {
 	if (!p_prim) {
 		return Ref<UsdPrimValue>();
 	}
 
-	UsdPrimType::Type type = p_prim->get_type();
+	UsdPrimType::Type type = UsdPrim::get_prim_type(p_prim);
 
 	switch (type) {
 		case UsdPrimType::USD_PRIM_TYPE_XFORM:
@@ -45,7 +45,7 @@ void apply_euler_rotation(Transform3D &result_transform, const tinyusdz::XformOp
 	}
 }
 
-Ref<UsdPrimValueXform> UsdPrimValueXform::create(const UsdPrim *p_prim) {
+Ref<UsdPrimValueXform> UsdPrimValueXform::create(const tinyusdz::Prim *p_prim) {
 	Ref<UsdPrimValueXform> ref;
 	ref.instantiate();
 	ref->_prim = p_prim;
@@ -61,12 +61,11 @@ Transform3D UsdPrimValueXform::get_transform() const {
 		return Transform3D();
 	}
 
-	const tinyusdz::Prim *prim = _prim->internal_prim();
-	if (!prim || !prim->is<tinyusdz::Xform>()) {
+	if (!_prim || !_prim->is<tinyusdz::Xform>()) {
 		return Transform3D();
 	}
 
-	const tinyusdz::Xform *xform = prim->as<tinyusdz::Xform>();
+	const tinyusdz::Xform *xform = _prim->as<tinyusdz::Xform>();
 	Transform3D result_transform;
 
 	const std::vector<tinyusdz::XformOp> &transforms = xform->xformOps;
@@ -155,12 +154,11 @@ String UsdPrimValueXform::get_name() const {
 		return String();
 	}
 
-	const tinyusdz::Prim *prim = _prim->internal_prim();
-	if (!prim || !prim->is<tinyusdz::Xform>()) {
+	if (!_prim || !_prim->is<tinyusdz::Xform>()) {
 		return String();
 	}
 
-	const tinyusdz::Xform *xform = prim->as<tinyusdz::Xform>();
+	const tinyusdz::Xform *xform = _prim->as<tinyusdz::Xform>();
 	return String(xform->name.c_str());
 }
 
@@ -199,7 +197,7 @@ void UsdPrimValueXform::_bind_methods() {
 // UsdPrimValueGeomMesh
 //////////////////////////////////////////////////////////////////////////
 
-Ref<UsdPrimValueGeomMesh> UsdPrimValueGeomMesh::create(const UsdPrim *p_prim) {
+Ref<UsdPrimValueGeomMesh> UsdPrimValueGeomMesh::create(const tinyusdz::Prim *p_prim) {
 	Ref<UsdPrimValueGeomMesh> ref;
 	ref.instantiate();
 	ref->_prim = p_prim;
@@ -217,12 +215,11 @@ PackedVector3Array UsdPrimValueGeomMesh::get_points() const {
 		return godot_points;
 	}
 
-	const tinyusdz::Prim *prim = _prim->internal_prim();
-	if (!prim || !prim->is<tinyusdz::GeomMesh>()) {
+	if (!_prim || !_prim->is<tinyusdz::GeomMesh>()) {
 		return godot_points;
 	}
 
-	const tinyusdz::GeomMesh *mesh = prim->as<tinyusdz::GeomMesh>();
+	const tinyusdz::GeomMesh *mesh = _prim->as<tinyusdz::GeomMesh>();
 	auto points = mesh->get_points();
 	godot_points.resize(points.size());
 	for (size_t i = 0; i < points.size(); i++) {
@@ -239,12 +236,11 @@ PackedVector3Array UsdPrimValueGeomMesh::get_normals() const {
 		return godot_normals;
 	}
 
-	const tinyusdz::Prim *prim = _prim->internal_prim();
-	if (!prim || !prim->is<tinyusdz::GeomMesh>()) {
+	if (!_prim || !_prim->is<tinyusdz::GeomMesh>()) {
 		return godot_normals;
 	}
 
-	const tinyusdz::GeomMesh *mesh = prim->as<tinyusdz::GeomMesh>();
+	const tinyusdz::GeomMesh *mesh = _prim->as<tinyusdz::GeomMesh>();
 	auto normals = mesh->get_normals();
 	godot_normals.resize(normals.size());
 	for (size_t i = 0; i < normals.size(); i++) {
@@ -259,12 +255,11 @@ String UsdPrimValueGeomMesh::get_name() const {
 		return String();
 	}
 
-	const tinyusdz::Prim *prim = _prim->internal_prim();
-	if (!prim || !prim->is<tinyusdz::GeomMesh>()) {
+	if (!_prim || !_prim->is<tinyusdz::GeomMesh>()) {
 		return String();
 	}
 
-	const tinyusdz::GeomMesh *mesh = prim->as<tinyusdz::GeomMesh>();
+	const tinyusdz::GeomMesh *mesh = _prim->as<tinyusdz::GeomMesh>();
 
 	return String(mesh->name.c_str());
 }

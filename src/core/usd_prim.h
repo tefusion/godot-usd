@@ -22,6 +22,7 @@ protected:
 
 public:
 	static Ref<UsdPrim> create(std::shared_ptr<tinyusdz::Stage> stage, const tinyusdz::Path &path);
+	static UsdPrimType::Type get_prim_type(const tinyusdz::Prim *prim);
 
 	String get_type_name() const;
 	UsdPrimType::Type get_type() const;
