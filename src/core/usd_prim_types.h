@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
@@ -8,9 +7,9 @@
 #include "godot_cpp/variant/packed_vector2_array.hpp"
 #include "godot_cpp/variant/packed_vector3_array.hpp"
 #include "godot_cpp/variant/transform3d.hpp"
+
 #include "prim-types.hh"
 #include "stage.hh"
-#include "usdGeom.hh"
 
 using namespace godot;
 

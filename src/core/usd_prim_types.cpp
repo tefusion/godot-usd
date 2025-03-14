@@ -1,12 +1,14 @@
 #include "usd_prim_types.h"
-#include "core/usd_prim.h"
-#include "core/usd_prim_type.h"
 #include "godot_cpp/core/object.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
-#include "prim-types.hh"
+
+#include "core/usd_prim.h"
+
+#include "nonstd/optional.hpp"
 #include "tydra/scene-access.hh"
 #include "type_utils.h"
 #include "usdGeom.hh"
+#include "value-types.hh"
 
 //godot doesn't work well with constructors with arguments so we just make an empty ref and set values in the create method
 template <typename T>
@@ -260,8 +262,15 @@ PackedVector2Array UsdPrimValueGeomMesh::get_uvs() const {
 	}
 
 	const tinyusdz::GeomMesh *mesh = _prim->as<tinyusdz::GeomMesh>();
-
-	return godot_uvs;
+	tinyusdz::GeomPrimvar primvar;
+	std::string err;
+	bool success = tinyusdz::tydra::GetGeomPrimvar(*_stage, mesh, "st", &primvar, &err);
+	ERR_FAIL_COND_V_MSG(!success, godot_uvs, String("Failed to get primvar: ") + err.c_str());
+	//TODO: I wasn't able to just use Value type so just used texcoord2f. Need to check if this can also be a double array
+	std::vector<tinyusdz::value::texcoord2f> value;
+	success = primvar.get_value(&value, &err);
+	ERR_FAIL_COND_V_MSG(!success, godot_uvs, String("Failed to get value: ") + err.c_str());
+	return to_variant(value);
 }
 
 String UsdPrimValueGeomMesh::get_name() const {
@@ -307,9 +316,10 @@ String UsdPrimValueGeomMesh::_to_string() const {
 }
 
 void UsdPrimValueGeomMesh::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_name"), &UsdPrimValueGeomMesh::get_name);
 	ClassDB::bind_method(D_METHOD("get_points"), &UsdPrimValueGeomMesh::get_points);
 	ClassDB::bind_method(D_METHOD("get_normals"), &UsdPrimValueGeomMesh::get_normals);
-	ClassDB::bind_method(D_METHOD("get_name"), &UsdPrimValueGeomMesh::get_name);
+	ClassDB::bind_method(D_METHOD("get_uvs"), &UsdPrimValueGeomMesh::get_uvs);
 
 	ClassDB::bind_method(D_METHOD("_to_string"), &UsdPrimValueGeomMesh::_to_string);
 
