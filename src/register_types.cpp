@@ -24,6 +24,7 @@ void gdextension_initialize(ModuleInitializationLevel p_level) {
 		ClassDB::register_class<UsdPrimValue>();
 		ClassDB::register_class<UsdPrimValueXform>();
 		ClassDB::register_class<UsdPrimValueGeomMesh>();
+		ClassDB::register_class<UsdGeomPrimvar>();
 	}
 }
 

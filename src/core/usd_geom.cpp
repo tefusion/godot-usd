@@ -5,8 +5,8 @@
 #include "godot_cpp/variant/utility_functions.hpp"
 
 #include "tydra/scene-access.hh"
-#include "type_utils.h"
 #include "usdGeom.hh"
+#include "utils/type_utils.h"
 #include "value-types.hh"
 
 template <typename T>
@@ -20,6 +20,85 @@ const T *get_typed_prim(const tinyusdz::Prim *_prim) {
 	}
 
 	return _prim->as<T>();
+}
+
+UsdGeomPrimvar::Interpolation UsdGeomPrimvar::interpolation_from_internal(tinyusdz::Interpolation interpolation) {
+	switch (interpolation) {
+		case tinyusdz::Interpolation::Constant:
+			return CONSTANT;
+		case tinyusdz::Interpolation::Uniform:
+			return UNIFORM;
+		case tinyusdz::Interpolation::Varying:
+			return VARYING;
+		case tinyusdz::Interpolation::Vertex:
+			return VERTEX;
+		case tinyusdz::Interpolation::FaceVarying:
+			return FACEVARYING;
+		default:
+			return INVALID;
+	}
+}
+
+tinyusdz::Interpolation UsdGeomPrimvar::interpolation_to_internal(UsdGeomPrimvar::Interpolation interpolation) {
+	switch (interpolation) {
+		case CONSTANT:
+			return tinyusdz::Interpolation::Constant;
+		case UNIFORM:
+			return tinyusdz::Interpolation::Uniform;
+		case VARYING:
+			return tinyusdz::Interpolation::Varying;
+		case VERTEX:
+			return tinyusdz::Interpolation::Vertex;
+		case FACEVARYING:
+			return tinyusdz::Interpolation::FaceVarying;
+		default:
+			return tinyusdz::Interpolation::Invalid;
+	}
+}
+
+String UsdGeomPrimvar::get_name() const {
+	return _name;
+}
+
+void UsdGeomPrimvar::set_name(const String &name) {
+	_name = name;
+}
+
+Array UsdGeomPrimvar::get_values() const {
+	return _values;
+}
+
+void UsdGeomPrimvar::set_values(const Array &values) {
+	_values = values;
+}
+
+UsdGeomPrimvar::Interpolation UsdGeomPrimvar::get_interpolation() const {
+	return _interpolation;
+}
+
+void UsdGeomPrimvar::set_interpolation(UsdGeomPrimvar::Interpolation interpolation) {
+	_interpolation = interpolation;
+}
+
+// Add this to bind the methods of UsdPrimvar
+void UsdGeomPrimvar::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_name"), &UsdGeomPrimvar::get_name);
+	ClassDB::bind_method(D_METHOD("set_name", "name"), &UsdGeomPrimvar::set_name);
+	ClassDB::bind_method(D_METHOD("get_values"), &UsdGeomPrimvar::get_values);
+	ClassDB::bind_method(D_METHOD("set_values", "values"), &UsdGeomPrimvar::set_values);
+	ClassDB::bind_method(D_METHOD("get_interpolation"), &UsdGeomPrimvar::get_interpolation);
+	ClassDB::bind_method(D_METHOD("set_interpolation", "interpolation"), &UsdGeomPrimvar::set_interpolation);
+
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "name"), "set_name", "get_name");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "values"), "set_values", "get_values");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "interpolation"), "set_interpolation", "get_interpolation");
+
+	BIND_ENUM_CONSTANT(CONSTANT);
+	BIND_ENUM_CONSTANT(UNIFORM);
+	BIND_ENUM_CONSTANT(VARYING);
+	BIND_ENUM_CONSTANT(VERTEX);
+	BIND_ENUM_CONSTANT(FACEVARYING);
+	BIND_ENUM_CONSTANT(INVALID);
 }
 
 void apply_euler_rotation(Transform3D &result_transform, const tinyusdz::XformOp &transform, EulerOrder order) {
@@ -226,23 +305,6 @@ PackedVector2Array UsdPrimValueGeomMesh::get_uvs() const {
 	return to_variant(value);
 }
 
-PackedStringArray UsdPrimValueGeomMesh::get_primvar_names() const {
-	return PackedStringArray();
-	// PackedStringArray godot_primvars;
-
-	// const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
-	// if (!mesh) {
-	// 	return godot_primvars;
-	// }
-
-	// std::vector<tinyusdz::GeomPrimvar> primvars = tinyusdz::tydra::GetGeomPrimvars(*_stage, *mesh);
-	// for (const auto &primvar : primvars) {
-	// 	godot_primvars.push_back(primvar.name().c_str());
-	// }
-
-	// return godot_primvars;
-}
-
 String UsdPrimValueGeomMesh::get_name() const {
 	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
 	if (!mesh) {
@@ -281,7 +343,6 @@ void UsdPrimValueGeomMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_points"), &UsdPrimValueGeomMesh::get_points);
 	ClassDB::bind_method(D_METHOD("get_normals"), &UsdPrimValueGeomMesh::get_normals);
 	ClassDB::bind_method(D_METHOD("get_uvs"), &UsdPrimValueGeomMesh::get_uvs);
-	ClassDB::bind_method(D_METHOD("get_primvar_names"), &UsdPrimValueGeomMesh::get_primvar_names);
 
 	ClassDB::bind_method(D_METHOD("_to_string"), &UsdPrimValueGeomMesh::_to_string);
 
