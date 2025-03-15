@@ -7,9 +7,10 @@
 #include <godot_cpp/godot.hpp>
 
 #include "core/usd_common.h"
+#include "core/usd_geom.h"
 #include "core/usd_prim.h"
 #include "core/usd_prim_type.h"
-#include "core/usd_prim_types.h"
+#include "core/usd_prim_value.h"
 #include "core/usd_stage.h"
 
 using namespace godot;

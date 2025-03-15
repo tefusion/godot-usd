@@ -1,6 +1,6 @@
 #include "usd_prim.h"
+#include "core/usd_geom.h"
 #include "core/usd_prim_type.h"
-#include "core/usd_prim_types.h"
 #include "value-types.hh"
 
 UsdPrimType::Type UsdPrim::get_prim_type(const tinyusdz::Prim *prim) {

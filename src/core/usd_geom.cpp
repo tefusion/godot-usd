@@ -1,52 +1,25 @@
-#include "usd_prim_types.h"
+#include "usd_geom.h"
+#include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/core/object.hpp"
+#include "godot_cpp/variant/packed_string_array.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
 
-#include "core/usd_prim.h"
-
-#include "nonstd/optional.hpp"
 #include "tydra/scene-access.hh"
 #include "type_utils.h"
 #include "usdGeom.hh"
 #include "value-types.hh"
 
-//godot doesn't work well with constructors with arguments so we just make an empty ref and set values in the create method
 template <typename T>
-static Ref<T> create_typed() {
-	Ref<T> ref;
-	ref.instantiate();
-	return ref;
-}
-
-Ref<UsdPrimValue> UsdPrimValue::create(const tinyusdz::Prim *p_prim, std::shared_ptr<tinyusdz::Stage> p_stage) {
-	if (!p_prim || !p_stage) {
-		return Ref<UsdPrimValue>();
+const T *get_typed_prim(const tinyusdz::Prim *_prim) {
+	if (!_prim) {
+		return nullptr;
 	}
 
-	UsdPrimType::Type type = UsdPrim::get_prim_type(p_prim);
-	Ref<UsdPrimValue> prim_value = nullptr;
-
-	switch (type) {
-		case UsdPrimType::USD_PRIM_TYPE_XFORM:
-			prim_value = create_typed<UsdPrimValueXform>();
-			break;
-		case UsdPrimType::USD_PRIM_TYPE_MESH:
-			prim_value = create_typed<UsdPrimValueGeomMesh>();
-			break;
-		default:
-			prim_value = create_typed<UsdPrimValue>();
+	if (!_prim->is<T>()) {
+		return nullptr;
 	}
-	prim_value->_prim = p_prim;
-	prim_value->_stage = p_stage;
-	return prim_value;
-}
 
-UsdPrimType::Type UsdPrimValue::get_type() const {
-	return UsdPrimType::USD_PRIM_TYPE_UNKNOWN;
-}
-
-void UsdPrimValue::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("get_type"), &UsdPrimValue::get_type);
+	return _prim->as<T>();
 }
 
 void apply_euler_rotation(Transform3D &result_transform, const tinyusdz::XformOp &transform, EulerOrder order) {
@@ -64,17 +37,12 @@ UsdPrimType::Type UsdPrimValueXform::get_type() const {
 }
 
 Transform3D UsdPrimValueXform::get_transform() const {
-	if (!_prim) {
+	const tinyusdz::Xform *xform = get_typed_prim<tinyusdz::Xform>(_prim);
+	if (!xform) {
 		return Transform3D();
 	}
 
-	if (!_prim || !_prim->is<tinyusdz::Xform>()) {
-		return Transform3D();
-	}
-
-	const tinyusdz::Xform *xform = _prim->as<tinyusdz::Xform>();
 	Transform3D result_transform;
-
 	const std::vector<tinyusdz::XformOp> &transforms = xform->xformOps;
 
 	for (const auto &transform : transforms) {
@@ -157,15 +125,11 @@ Transform3D UsdPrimValueXform::get_transform() const {
 }
 
 String UsdPrimValueXform::get_name() const {
-	if (!_prim) {
+	const tinyusdz::Xform *xform = get_typed_prim<tinyusdz::Xform>(_prim);
+	if (!xform) {
 		return String();
 	}
 
-	if (!_prim || !_prim->is<tinyusdz::Xform>()) {
-		return String();
-	}
-
-	const tinyusdz::Xform *xform = _prim->as<tinyusdz::Xform>();
 	return String(xform->name.c_str());
 }
 
@@ -211,15 +175,11 @@ UsdPrimType::Type UsdPrimValueGeomMesh::get_type() const {
 PackedVector3Array UsdPrimValueGeomMesh::get_points() const {
 	PackedVector3Array godot_points;
 
-	if (!_prim) {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	if (!mesh) {
 		return godot_points;
 	}
 
-	if (!_prim || !_prim->is<tinyusdz::GeomMesh>()) {
-		return godot_points;
-	}
-
-	const tinyusdz::GeomMesh *mesh = _prim->as<tinyusdz::GeomMesh>();
 	auto points = mesh->get_points();
 	godot_points.resize(points.size());
 	for (size_t i = 0; i < points.size(); i++) {
@@ -232,15 +192,11 @@ PackedVector3Array UsdPrimValueGeomMesh::get_points() const {
 PackedVector3Array UsdPrimValueGeomMesh::get_normals() const {
 	PackedVector3Array godot_normals;
 
-	if (!_prim) {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	if (!mesh) {
 		return godot_normals;
 	}
 
-	if (!_prim || !_prim->is<tinyusdz::GeomMesh>()) {
-		return godot_normals;
-	}
-
-	const tinyusdz::GeomMesh *mesh = _prim->as<tinyusdz::GeomMesh>();
 	auto normals = mesh->get_normals();
 	godot_normals.resize(normals.size());
 	for (size_t i = 0; i < normals.size(); i++) {
@@ -253,50 +209,55 @@ PackedVector3Array UsdPrimValueGeomMesh::get_normals() const {
 PackedVector2Array UsdPrimValueGeomMesh::get_uvs() const {
 	PackedVector2Array godot_uvs;
 
-	if (!_prim) {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	if (!mesh) {
 		return godot_uvs;
 	}
 
-	if (!_prim || !_prim->is<tinyusdz::GeomMesh>()) {
-		return godot_uvs;
-	}
-
-	const tinyusdz::GeomMesh *mesh = _prim->as<tinyusdz::GeomMesh>();
 	tinyusdz::GeomPrimvar primvar;
 	std::string err;
 	bool success = tinyusdz::tydra::GetGeomPrimvar(*_stage, mesh, "st", &primvar, &err);
 	ERR_FAIL_COND_V_MSG(!success, godot_uvs, String("Failed to get primvar: ") + err.c_str());
 	//TODO: I wasn't able to just use Value type so just used texcoord2f. Need to check if this can also be a double array
 	std::vector<tinyusdz::value::texcoord2f> value;
+	auto variability = primvar.get_attribute().variability();
 	success = primvar.get_value(&value, &err);
 	ERR_FAIL_COND_V_MSG(!success, godot_uvs, String("Failed to get value: ") + err.c_str());
 	return to_variant(value);
 }
 
+PackedStringArray UsdPrimValueGeomMesh::get_primvar_names() const {
+	return PackedStringArray();
+	// PackedStringArray godot_primvars;
+
+	// const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	// if (!mesh) {
+	// 	return godot_primvars;
+	// }
+
+	// std::vector<tinyusdz::GeomPrimvar> primvars = tinyusdz::tydra::GetGeomPrimvars(*_stage, *mesh);
+	// for (const auto &primvar : primvars) {
+	// 	godot_primvars.push_back(primvar.name().c_str());
+	// }
+
+	// return godot_primvars;
+}
+
 String UsdPrimValueGeomMesh::get_name() const {
-	if (!_prim) {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	if (!mesh) {
 		return String();
 	}
-
-	if (!_prim || !_prim->is<tinyusdz::GeomMesh>()) {
-		return String();
-	}
-
-	const tinyusdz::GeomMesh *mesh = _prim->as<tinyusdz::GeomMesh>();
 
 	return String(mesh->name.c_str());
 }
 
 size_t UsdPrimValueGeomMesh::get_face_count() const {
-	if (!_prim) {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	if (!mesh) {
 		return 0;
 	}
 
-	if (!_prim || !_prim->is<tinyusdz::GeomMesh>()) {
-		return 0;
-	}
-
-	const tinyusdz::GeomMesh *mesh = _prim->as<tinyusdz::GeomMesh>();
 	return mesh->get_faceVertexCounts().size();
 }
 
@@ -320,6 +281,7 @@ void UsdPrimValueGeomMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_points"), &UsdPrimValueGeomMesh::get_points);
 	ClassDB::bind_method(D_METHOD("get_normals"), &UsdPrimValueGeomMesh::get_normals);
 	ClassDB::bind_method(D_METHOD("get_uvs"), &UsdPrimValueGeomMesh::get_uvs);
+	ClassDB::bind_method(D_METHOD("get_primvar_names"), &UsdPrimValueGeomMesh::get_primvar_names);
 
 	ClassDB::bind_method(D_METHOD("_to_string"), &UsdPrimValueGeomMesh::_to_string);
 

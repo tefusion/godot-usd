@@ -3,8 +3,8 @@
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
+#include "core/usd_geom.h"
 #include "core/usd_prim_type.h"
-#include "core/usd_prim_types.h"
 #include "tinyusdz.hh"
 #include "usd_common.h"
 
