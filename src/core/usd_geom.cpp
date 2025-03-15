@@ -80,6 +80,26 @@ void UsdGeomPrimvar::set_interpolation(UsdGeomPrimvar::Interpolation interpolati
 	_interpolation = interpolation;
 }
 
+int UsdGeomPrimvar::get_element_size() const {
+	return _element_size;
+}
+
+void UsdGeomPrimvar::set_element_size(int element_size) {
+	_element_size = element_size;
+}
+
+PackedInt32Array UsdGeomPrimvar::get_indices() const {
+	return _indices;
+}
+
+void UsdGeomPrimvar::set_indices(const PackedInt32Array &indices) {
+	_indices = indices;
+}
+
+bool UsdGeomPrimvar::has_indices() const {
+	return !_indices.is_empty();
+}
+
 // Add this to bind the methods of UsdPrimvar
 void UsdGeomPrimvar::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_name"), &UsdGeomPrimvar::get_name);
@@ -88,10 +108,17 @@ void UsdGeomPrimvar::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_values", "values"), &UsdGeomPrimvar::set_values);
 	ClassDB::bind_method(D_METHOD("get_interpolation"), &UsdGeomPrimvar::get_interpolation);
 	ClassDB::bind_method(D_METHOD("set_interpolation", "interpolation"), &UsdGeomPrimvar::set_interpolation);
+	ClassDB::bind_method(D_METHOD("get_element_size"), &UsdGeomPrimvar::get_element_size);
+	ClassDB::bind_method(D_METHOD("set_element_size", "element_size"), &UsdGeomPrimvar::set_element_size);
+	ClassDB::bind_method(D_METHOD("get_indices"), &UsdGeomPrimvar::get_indices);
+	ClassDB::bind_method(D_METHOD("set_indices", "indices"), &UsdGeomPrimvar::set_indices);
+	ClassDB::bind_method(D_METHOD("has_indices"), &UsdGeomPrimvar::has_indices);
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "name"), "set_name", "get_name");
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "values"), "set_values", "get_values");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "interpolation"), "set_interpolation", "get_interpolation");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "element_size"), "set_element_size", "get_element_size");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_INT32_ARRAY, "indices"), "set_indices", "get_indices");
 
 	BIND_ENUM_CONSTANT(CONSTANT);
 	BIND_ENUM_CONSTANT(UNIFORM);
@@ -323,6 +350,36 @@ size_t UsdPrimValueGeomMesh::get_face_count() const {
 	return mesh->get_faceVertexCounts().size();
 }
 
+UsdPrimValueGeomMesh::PrimVarType UsdPrimValueGeomMesh::primvar_type_from_string(const String &name) {
+	if (name == "st") {
+		return PRIMVAR_TEX_UV;
+	} else if (name == "st2") {
+		return PRIMVAR_TEX_UV2;
+	} else if (name == "skel:jointIndices") {
+		return PRIMVAR_BONES;
+	} else if (name == "skel:jointWeights") {
+		return PRIMVAR_WEIGHTS;
+	}
+	//TODO: color array, didn't find any sample
+
+	return PRIMVAR_INVALID;
+}
+
+String UsdPrimValueGeomMesh::primvar_type_to_string(UsdPrimValueGeomMesh::PrimVarType type) {
+	switch (type) {
+		case PRIMVAR_TEX_UV:
+			return "st";
+		case PRIMVAR_TEX_UV2:
+			return "st2";
+		case PRIMVAR_BONES:
+			return "skel:jointIndices";
+		case PRIMVAR_WEIGHTS:
+			return "skel:jointWeights";
+		default:
+			return String();
+	}
+}
+
 String UsdPrimValueGeomMesh::_to_string() const {
 	String name = get_name();
 	PackedVector3Array points = get_points();
@@ -343,10 +400,20 @@ void UsdPrimValueGeomMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_points"), &UsdPrimValueGeomMesh::get_points);
 	ClassDB::bind_method(D_METHOD("get_normals"), &UsdPrimValueGeomMesh::get_normals);
 	ClassDB::bind_method(D_METHOD("get_uvs"), &UsdPrimValueGeomMesh::get_uvs);
+	ClassDB::bind_method(D_METHOD("get_face_count"), &UsdPrimValueGeomMesh::get_face_count);
+
+	ClassDB::bind_static_method("UsdPrimValueGeomMesh", D_METHOD("primvar_type_from_string", "type"), &UsdPrimValueGeomMesh::primvar_type_from_string);
+	ClassDB::bind_static_method("UsdPrimValueGeomMesh", D_METHOD("primvar_type_to_string", "type"), &UsdPrimValueGeomMesh::primvar_type_to_string);
 
 	ClassDB::bind_method(D_METHOD("_to_string"), &UsdPrimValueGeomMesh::_to_string);
 
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_VECTOR3_ARRAY, "points"), "", "get_points");
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_VECTOR3_ARRAY, "normals"), "", "get_normals");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "name"), "", "get_name");
+
+	BIND_ENUM_CONSTANT(PRIMVAR_TEX_UV);
+	BIND_ENUM_CONSTANT(PRIMVAR_TEX_UV2);
+	BIND_ENUM_CONSTANT(PRIMVAR_COLOR);
+	BIND_ENUM_CONSTANT(PRIMVAR_BONES);
+	BIND_ENUM_CONSTANT(PRIMVAR_WEIGHTS);
 }

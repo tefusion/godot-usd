@@ -6,6 +6,7 @@
 #include "core/usd_prim_type.h"
 #include "core/usd_prim_value.h"
 #include "godot_cpp/core/binder_common.hpp"
+#include "godot_cpp/variant/packed_int32_array.hpp"
 #include "godot_cpp/variant/packed_string_array.hpp"
 #include "godot_cpp/variant/packed_vector2_array.hpp"
 #include "godot_cpp/variant/packed_vector3_array.hpp"
@@ -39,6 +40,14 @@ public:
 	Interpolation get_interpolation() const;
 	void set_interpolation(Interpolation interpolation);
 
+	int get_element_size() const;
+	void set_element_size(int element_size);
+
+	PackedInt32Array get_indices() const;
+	void set_indices(const PackedInt32Array &indices);
+	/// Returns false if _indices is empty
+	bool has_indices() const;
+
 protected:
 	static void _bind_methods();
 
@@ -46,6 +55,8 @@ private:
 	String _name;
 	Array _values;
 	Interpolation _interpolation = INVALID;
+	int _element_size = 1;
+	PackedInt32Array _indices;
 };
 
 VARIANT_ENUM_CAST(UsdGeomPrimvar::Interpolation);
@@ -71,6 +82,19 @@ protected:
 	static void _bind_methods();
 
 public:
+	// naming is oriented towards Godot ArrayMesh
+	enum PrimVarType {
+		PRIMVAR_TEX_UV,
+		PRIMVAR_TEX_UV2,
+		PRIMVAR_COLOR,
+		PRIMVAR_BONES,
+		PRIMVAR_WEIGHTS,
+		PRIMVAR_INVALID,
+	};
+
+	static PrimVarType primvar_type_from_string(const String &name);
+	static String primvar_type_to_string(PrimVarType type);
+
 	virtual UsdPrimType::Type get_type() const override;
 
 	String get_name() const;
@@ -81,3 +105,5 @@ public:
 
 	String _to_string() const;
 };
+
+VARIANT_ENUM_CAST(UsdPrimValueGeomMesh::PrimVarType);
