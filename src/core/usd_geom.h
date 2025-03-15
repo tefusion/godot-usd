@@ -3,6 +3,7 @@
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
+#include "core/usd_common.h"
 #include "core/usd_prim_type.h"
 #include "core/usd_prim_value.h"
 #include "godot_cpp/core/binder_common.hpp"
@@ -75,6 +76,45 @@ public:
 	String get_name() const;
 };
 
+/// For now just handling the materialBind subset family to avoid having to create a generic class
+class UsdPrimValueGeomMaterialSubset : public UsdPrimValue {
+	GDCLASS(UsdPrimValueGeomMaterialSubset, UsdPrimValue);
+
+public:
+	enum ElementType {
+		FACE,
+		POINT,
+	};
+
+	static ElementType element_type_from_internal(tinyusdz::GeomSubset::ElementType type);
+	static tinyusdz::GeomSubset::ElementType element_type_to_internal(ElementType type);
+
+	String get_name() const;
+	void set_name(const String &name);
+
+	Ref<UsdPath> get_bound_material() const;
+	void set_bound_material(Ref<UsdPath> path);
+
+	ElementType get_element_type() const;
+	void set_element_type(ElementType type);
+
+	PackedInt32Array get_indices() const;
+	void set_indices(const PackedInt32Array &indices);
+
+	String _to_string() const;
+
+protected:
+	static void _bind_methods();
+
+private:
+	String _name;
+	Ref<UsdPath> _bound_material_path;
+	ElementType _element_type = FACE;
+	PackedInt32Array _indices;
+};
+
+VARIANT_ENUM_CAST(UsdPrimValueGeomMaterialSubset::ElementType);
+
 class UsdPrimValueGeomMesh : public UsdPrimValue {
 	GDCLASS(UsdPrimValueGeomMesh, UsdPrimValue);
 
@@ -102,6 +142,11 @@ public:
 	PackedVector3Array get_normals() const;
 	PackedVector2Array get_uvs() const;
 	size_t get_face_count() const;
+	PackedInt32Array get_face_vertex_counts() const;
+	PackedInt32Array get_face_vertex_indices() const;
+
+	Ref<UsdPath> get_directly_bound_material() const;
+	TypedArray<UsdPrimValueGeomMaterialSubset> get_materials() const;
 
 	String _to_string() const;
 };

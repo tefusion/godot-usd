@@ -18,6 +18,8 @@ protected:
 	static void _bind_methods();
 
 public:
+	static Ref<UsdPath> create(const tinyusdz::Path &path);
+
 	/// Returns the full path as a string (includes both prim and property parts)
 	String full_path() const;
 
@@ -52,6 +54,8 @@ public:
 
 	/// Sets the internal tinyusdz::Path object
 	void set_path(const tinyusdz::Path &path);
+
+	String _to_string() const;
 
 	UsdPath();
 };

@@ -10,6 +10,14 @@ void UsdPath::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_prim_path"), &UsdPath::is_prim_path);
 	ClassDB::bind_method(D_METHOD("is_property_path"), &UsdPath::is_property_path);
 	ClassDB::bind_method(D_METHOD("is_valid"), &UsdPath::is_valid);
+	ClassDB::bind_method(D_METHOD("_to_string"), &UsdPath::_to_string);
+}
+
+Ref<UsdPath> UsdPath::create(const tinyusdz::Path &path) {
+	Ref<UsdPath> usd_path;
+	usd_path.instantiate();
+	usd_path->set_path(path);
+	return usd_path;
 }
 
 String UsdPath::full_path() const {
@@ -54,6 +62,10 @@ const tinyusdz::Path &UsdPath::get_path() const {
 
 void UsdPath::set_path(const tinyusdz::Path &path) {
 	_path = path;
+}
+
+String UsdPath::_to_string() const {
+	return String(_path.full_path_name().c_str());
 }
 
 UsdPath::UsdPath() {

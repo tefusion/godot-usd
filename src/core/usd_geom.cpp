@@ -1,10 +1,15 @@
 #include "usd_geom.h"
+#include "core/usd_common.h"
 #include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/core/object.hpp"
+#include "godot_cpp/variant/packed_int32_array.hpp"
 #include "godot_cpp/variant/packed_string_array.hpp"
+#include "godot_cpp/variant/typed_array.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
 
+#include "token-type.hh"
 #include "tydra/scene-access.hh"
+#include "tydra/shader-network.hh"
 #include "usdGeom.hh"
 #include "utils/type_utils.h"
 #include "value-types.hh"
@@ -271,6 +276,100 @@ void UsdPrimValueXform::_bind_methods() {
 }
 
 //////////////////////////////////////////////////////////////////////////
+// UsdPrimValueGeomMaterialSubset
+//////////////////////////////////////////////////////////////////////////
+
+UsdPrimValueGeomMaterialSubset::ElementType UsdPrimValueGeomMaterialSubset::element_type_from_internal(tinyusdz::GeomSubset::ElementType type) {
+	switch (type) {
+		case tinyusdz::GeomSubset::ElementType::Face:
+			return FACE;
+		case tinyusdz::GeomSubset::ElementType::Point:
+			return POINT;
+		default:
+			return FACE; // Default to FACE if unknown
+	}
+}
+
+tinyusdz::GeomSubset::ElementType UsdPrimValueGeomMaterialSubset::element_type_to_internal(UsdPrimValueGeomMaterialSubset::ElementType type) {
+	switch (type) {
+		case FACE:
+			return tinyusdz::GeomSubset::ElementType::Face;
+		case POINT:
+			return tinyusdz::GeomSubset::ElementType::Point;
+		default:
+			return tinyusdz::GeomSubset::ElementType::Face; // Default to Face if unknown
+	}
+}
+
+String UsdPrimValueGeomMaterialSubset::get_name() const {
+	return _name;
+}
+
+void UsdPrimValueGeomMaterialSubset::set_name(const String &name) {
+	_name = name;
+}
+
+Ref<UsdPath> UsdPrimValueGeomMaterialSubset::get_bound_material() const {
+	return _bound_material_path;
+}
+
+void UsdPrimValueGeomMaterialSubset::set_bound_material(Ref<UsdPath> path) {
+	_bound_material_path = path;
+}
+
+UsdPrimValueGeomMaterialSubset::ElementType UsdPrimValueGeomMaterialSubset::get_element_type() const {
+	return _element_type;
+}
+
+void UsdPrimValueGeomMaterialSubset::set_element_type(UsdPrimValueGeomMaterialSubset::ElementType type) {
+	_element_type = type;
+}
+
+PackedInt32Array UsdPrimValueGeomMaterialSubset::get_indices() const {
+	return _indices;
+}
+
+void UsdPrimValueGeomMaterialSubset::set_indices(const PackedInt32Array &indices) {
+	_indices = indices;
+}
+
+String UsdPrimValueGeomMaterialSubset::_to_string() const {
+	String result = "UsdPrimValueGeomMaterialSubset(";
+
+	result += "name: \"" + _name + "\", ";
+	result += "bound_material: " + _bound_material_path->_to_string() + ", ";
+	result += "element_type: " + UtilityFunctions::var_to_str(_element_type) + ", ";
+	result += "indices: " + UtilityFunctions::var_to_str(_indices);
+
+	result += ")";
+	return result;
+}
+
+void UsdPrimValueGeomMaterialSubset::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_name"), &UsdPrimValueGeomMaterialSubset::get_name);
+	ClassDB::bind_method(D_METHOD("set_name", "name"), &UsdPrimValueGeomMaterialSubset::set_name);
+
+	ClassDB::bind_method(D_METHOD("get_bound_material"), &UsdPrimValueGeomMaterialSubset::get_bound_material);
+	ClassDB::bind_method(D_METHOD("set_bound_material", "path"), &UsdPrimValueGeomMaterialSubset::set_bound_material);
+
+	ClassDB::bind_method(D_METHOD("get_element_type"), &UsdPrimValueGeomMaterialSubset::get_element_type);
+	ClassDB::bind_method(D_METHOD("set_element_type", "type"), &UsdPrimValueGeomMaterialSubset::set_element_type);
+
+	ClassDB::bind_method(D_METHOD("get_indices"), &UsdPrimValueGeomMaterialSubset::get_indices);
+	ClassDB::bind_method(D_METHOD("set_indices", "indices"), &UsdPrimValueGeomMaterialSubset::set_indices);
+
+	ClassDB::bind_method(D_METHOD("_to_string"), &UsdPrimValueGeomMaterialSubset::_to_string);
+
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "name"), "set_name", "get_name");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "bound_material", PROPERTY_HINT_RESOURCE_TYPE, "UsdPath"), "set_bound_material", "get_bound_material");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "element_type"), "set_element_type", "get_element_type");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_INT32_ARRAY, "indices"), "set_indices", "get_indices");
+
+	BIND_ENUM_CONSTANT(FACE);
+	BIND_ENUM_CONSTANT(POINT);
+}
+
+//////////////////////////////////////////////////////////////////////////
 // UsdPrimValueGeomMesh
 //////////////////////////////////////////////////////////////////////////
 
@@ -342,12 +441,104 @@ String UsdPrimValueGeomMesh::get_name() const {
 }
 
 size_t UsdPrimValueGeomMesh::get_face_count() const {
+	return get_face_vertex_counts().size();
+}
+
+PackedInt32Array UsdPrimValueGeomMesh::get_face_vertex_counts() const {
 	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
 	if (!mesh) {
-		return 0;
+		return PackedInt32Array();
 	}
 
-	return mesh->get_faceVertexCounts().size();
+	const std::vector<int32_t> &face_vertex_counts = mesh->get_faceVertexCounts();
+	PackedInt32Array godot_face_vertex_counts;
+	godot_face_vertex_counts.resize(face_vertex_counts.size());
+	for (size_t i = 0; i < face_vertex_counts.size(); i++) {
+		godot_face_vertex_counts.set(i, face_vertex_counts[i]);
+	}
+
+	return godot_face_vertex_counts;
+}
+
+PackedInt32Array UsdPrimValueGeomMesh::get_face_vertex_indices() const {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	if (!mesh) {
+		return PackedInt32Array();
+	}
+
+	const std::vector<int32_t> &face_vertex_indices = mesh->get_faceVertexIndices();
+	PackedInt32Array godot_face_vertex_indices;
+	godot_face_vertex_indices.resize(face_vertex_indices.size());
+	for (size_t i = 0; i < face_vertex_indices.size(); i++) {
+		godot_face_vertex_indices.set(i, face_vertex_indices[i]);
+	}
+
+	return godot_face_vertex_indices;
+}
+
+Ref<UsdPath> UsdPrimValueGeomMesh::get_directly_bound_material() const {
+	Ref<UsdPath> godot_material_path;
+	godot_material_path.instantiate();
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	if (!mesh) {
+		return godot_material_path;
+	}
+	tinyusdz::Path material_path;
+	const tinyusdz::Material *material;
+	std::string err;
+	const std::string purpose = ""; //->all purposes
+
+	bool success = tinyusdz::tydra::GetBoundMaterial(*_stage, _prim->absolute_path(), purpose, &material_path, &material, &err);
+
+	ERR_FAIL_COND_V_MSG(!success, godot_material_path, String("Failed to get bound material: ") + err.c_str());
+
+	godot_material_path->set_path(material_path);
+	return godot_material_path;
+}
+
+TypedArray<UsdPrimValueGeomMaterialSubset> UsdPrimValueGeomMesh::get_materials() const {
+	TypedArray<UsdPrimValueGeomMaterialSubset> godot_materials;
+
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	if (!mesh) {
+		return godot_materials;
+	}
+
+	const tinyusdz::Token material_bind_family = tinyusdz::Token("materialBind");
+	const std::vector<const tinyusdz::GeomSubset *> geom_subsets = tinyusdz::tydra::GetGeomSubsets(*_stage, _prim->absolute_path(), material_bind_family);
+
+	if (geom_subsets.empty()) {
+		return godot_materials;
+	}
+
+	Ref<UsdPath> default_material = get_directly_bound_material();
+	for (const auto &subset : geom_subsets) {
+		Ref<UsdPrimValueGeomMaterialSubset> godot_subset;
+		godot_subset.instantiate();
+		godot_subset->set_name(subset->name.c_str());
+		godot_subset->set_element_type(UsdPrimValueGeomMaterialSubset::element_type_from_internal(subset->elementType.get_value()));
+
+		const auto &indices_opt = subset->indices.get_value();
+		if (indices_opt.has_value()) {
+			const auto &indices = indices_opt.value();
+			ERR_CONTINUE_MSG(!indices.is_scalar(), "Animated primvars are not supported");
+			std::vector<int32_t> indices_val;
+			bool success = indices.get_scalar(&indices_val);
+			ERR_CONTINUE_MSG(!success, "Failed to get indices");
+			godot_subset->set_indices(to_variant(indices_val));
+		}
+
+		auto material_binding = subset->materialBinding;
+		if (material_binding.has_value()) {
+			godot_subset->set_bound_material(UsdPath::create(material_binding->targetPath));
+		} else {
+			godot_subset->set_bound_material(default_material);
+		}
+
+		godot_materials.push_back(godot_subset);
+	}
+
+	return godot_materials;
 }
 
 UsdPrimValueGeomMesh::PrimVarType UsdPrimValueGeomMesh::primvar_type_from_string(const String &name) {
@@ -401,6 +592,10 @@ void UsdPrimValueGeomMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_normals"), &UsdPrimValueGeomMesh::get_normals);
 	ClassDB::bind_method(D_METHOD("get_uvs"), &UsdPrimValueGeomMesh::get_uvs);
 	ClassDB::bind_method(D_METHOD("get_face_count"), &UsdPrimValueGeomMesh::get_face_count);
+	ClassDB::bind_method(D_METHOD("get_face_vertex_counts"), &UsdPrimValueGeomMesh::get_face_vertex_counts);
+	ClassDB::bind_method(D_METHOD("get_face_vertex_indices"), &UsdPrimValueGeomMesh::get_face_vertex_indices);
+	ClassDB::bind_method(D_METHOD("get_directly_bound_material"), &UsdPrimValueGeomMesh::get_directly_bound_material);
+	ClassDB::bind_method(D_METHOD("get_materials"), &UsdPrimValueGeomMesh::get_materials);
 
 	ClassDB::bind_static_method("UsdPrimValueGeomMesh", D_METHOD("primvar_type_from_string", "type"), &UsdPrimValueGeomMesh::primvar_type_from_string);
 	ClassDB::bind_static_method("UsdPrimValueGeomMesh", D_METHOD("primvar_type_to_string", "type"), &UsdPrimValueGeomMesh::primvar_type_to_string);
