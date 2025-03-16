@@ -139,6 +139,7 @@ Ref<UsdLoadedMaterials> extract_materials_impl(const tinyusdz::Stage &stage, con
 		const tinyusdz::Path &abs_mat_path = tinyusdz::Path(material_path, "");
 		const tinyusdz::Material *material = pair.second;
 		bool sucess = converter.ConvertMaterial(env, abs_mat_path, *material, &render_materials[material_index]);
+		material_index++;
 		ERR_CONTINUE_MSG(!sucess, String("Failed to convert material ") + material_path.c_str() + String("Load Error: ") + converter.GetError().c_str());
 	}
 
@@ -164,6 +165,8 @@ Ref<UsdLoadedMaterials> extract_materials_impl(const tinyusdz::Stage &stage, con
 
 	// Create Godot materials
 	for (const auto &render_mat : render_materials) {
+		//checking render id didn't work (if not used in mesh not assigned, so just checking if it has a path)
+		ERR_CONTINUE_MSG(render_mat.abs_path.empty(), "Material has no path. Conversion likely failed.");
 		godot_material_paths.push_back(render_mat.abs_path.c_str());
 		godot_materials.push_back(create_godot_material(render_mat, loaded_textures, godot_textures));
 	}
@@ -234,13 +237,11 @@ bool UsdLoadedMaterials::has_material(const String &abs_path) const {
 void UsdLoadedMaterials::set_materials(const PackedStringArray &material_paths,
 		const TypedArray<StandardMaterial3D> &materials) {
 	_material_map.clear();
+	ERR_FAIL_COND_MSG(material_paths.size() != materials.size(), "Material paths and materials must have the same size");
 	for (int i = 0; i < material_paths.size(); i++) {
-		if (i < materials.size()) {
-			Ref<StandardMaterial3D> material = materials[i];
-			if (material.is_valid()) {
-				_material_map[material_paths[i]] = material;
-			}
-		}
+		Ref<StandardMaterial3D> material = materials[i];
+		ERR_CONTINUE_MSG(material.is_null(), "Material is null");
+		_material_map.insert(material_paths[i], material);
 	}
 }
 

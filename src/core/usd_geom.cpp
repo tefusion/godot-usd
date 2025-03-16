@@ -623,17 +623,23 @@ Ref<UsdGeomMeshMaterialMap> UsdPrimValueGeomMesh::get_material_map() const {
 		godot_material_map->set_materials(materials);
 	} else {
 		PackedInt32Array face_material_indices;
+		size_t total_face_count = get_face_count();
+		face_material_indices.resize(total_face_count);
+		face_material_indices.fill(-1);
 		TypedArray<UsdPath> materials;
 
-		for (const auto &subset : subset_materials) {
-			const Ref<UsdPath> material = subset->get_bound_material();
-			const PackedInt32Array indices = subset->get_indices();
+		for (int material_idx = 0; material_idx < subset_materials.size(); material_idx++) {
+			const Ref<UsdPrimValueGeomMaterialSubset> &subset = subset_materials[material_idx];
+			const Ref<UsdPath> &material = subset->get_bound_material();
+			const PackedInt32Array &indices = subset->get_indices();
+			materials.push_back(material);
 
 			ERR_CONTINUE_MSG(subset->get_element_type() != UsdPrimValueGeomMaterialSubset::ElementType::FACE, "Material subset element type is not FACE");
 
-			for (int i = 0; i < indices.size(); i++) {
-				face_material_indices.push_back(indices[i]);
-				materials.push_back(material);
+			for (const int &index : indices) {
+				ERR_CONTINUE_MSG(index < 0 || index >= total_face_count, "Material subset index out of bounds");
+				ERR_CONTINUE_MSG(face_material_indices[index] != -1, "Material subset index already assigned");
+				face_material_indices.set(index, material_idx);
 			}
 		}
 

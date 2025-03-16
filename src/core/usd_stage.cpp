@@ -1,13 +1,9 @@
 #include "usd_stage.h"
 #include <godot_cpp/classes/project_settings.hpp>
 
-#include "asset-resolution.hh"
 #include "composition.hh"
 #include "io-util.hh"
-#include "pprinter.hh"
-#include "str-util.hh"
 #include "stream-reader.hh"
-#include "usdShade.hh"
 #include "usda-reader.hh"
 
 tinyusdz::Stage *UsdStage::load_stage(const String &path) {
