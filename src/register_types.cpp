@@ -13,7 +13,6 @@
 #include "core/usd_prim_type.h"
 #include "core/usd_prim_value.h"
 #include "core/usd_stage.h"
-#include "utils/geom_utils.h"
 
 using namespace godot;
 

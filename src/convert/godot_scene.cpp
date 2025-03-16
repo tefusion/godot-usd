@@ -100,9 +100,8 @@ Ref<ArrayMesh> UsdGodotSceneConverter::convert_mesh(const Ref<UsdPrimValueGeomMe
 		surface_indices[material_idx] = all_triangles;
 	}
 
-	for (const KeyValue<int, Vector<int>> &kv : surface_indices) {
-		int material_idx = kv.key;
-		const Vector<int> &triangle_indices = kv.value;
+	for (int material_idx = 0; material_idx < surface_indices.size(); material_idx++) {
+		const Vector<int> &triangle_indices = surface_indices[material_idx];
 
 		Array surface_arrays;
 		surface_arrays.resize(ArrayMesh::ARRAY_MAX);
