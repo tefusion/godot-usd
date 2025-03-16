@@ -51,6 +51,8 @@ public:
 	/// Returns false if _indices is empty
 	bool has_indices() const;
 
+	String _to_string() const;
+
 protected:
 	static void _bind_methods();
 
@@ -160,14 +162,19 @@ public:
 	};
 
 	static PrimVarType primvar_type_from_string(const String &name);
-	static String primvar_type_to_string(PrimVarType type);
+	static PackedStringArray primvar_type_to_string(const PrimVarType type);
+
+	/// Returns used primvar name. If empty, the primvar is not present
+	String get_primvar_name(const PrimVarType type) const;
+	bool has_primvar(const PrimVarType type) const;
+	Ref<UsdGeomPrimvar> get_primvar(const PrimVarType type) const;
+	Array get_primvars() const;
 
 	virtual UsdPrimType::Type get_type() const override;
 
 	String get_name() const;
 	PackedVector3Array get_points() const;
 	PackedVector3Array get_normals() const;
-	PackedVector2Array get_uvs() const;
 	size_t get_face_count() const;
 	PackedInt32Array get_face_vertex_counts() const;
 	PackedInt32Array get_face_vertex_indices() const;

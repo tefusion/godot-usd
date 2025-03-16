@@ -106,6 +106,16 @@ bool UsdGeomPrimvar::has_indices() const {
 	return !_indices.is_empty();
 }
 
+String UsdGeomPrimvar::_to_string() const {
+	String info = "UsdGeomPrimvar: ";
+	info += "name: " + _name + ", ";
+	info += "interpolation: " + String::num_int64(_interpolation) + ", ";
+	info += "element_size: " + String::num_int64(_element_size) + ", ";
+	info += "values: " + String::num_int64(_values.size()) + ", ";
+	info += "indices: " + String::num_int64(_indices.size());
+	return info;
+}
+
 // Add this to bind the methods of UsdPrimvar
 void UsdGeomPrimvar::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_name"), &UsdGeomPrimvar::get_name);
@@ -471,24 +481,114 @@ PackedVector3Array UsdPrimValueGeomMesh::get_normals() const {
 	return godot_normals;
 }
 
-PackedVector2Array UsdPrimValueGeomMesh::get_uvs() const {
-	PackedVector2Array godot_uvs;
+String UsdPrimValueGeomMesh::get_primvar_name(const UsdPrimValueGeomMesh::PrimVarType type) const {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	if (!mesh) {
+		return "";
+	}
+
+	const PackedStringArray primvar_names = UsdPrimValueGeomMesh::primvar_type_to_string(type);
+	String primvar_name = "";
+	for (int i = 0; i < primvar_names.size(); i++) {
+		std::string prop_name = "primvars:" + std::string(primvar_names[i].utf8().get_data());
+		const auto it = mesh->props.find(prop_name);
+		if (it != mesh->props.end()) {
+			primvar_name = primvar_names[i];
+			break;
+		}
+	}
+	return primvar_name;
+}
+
+bool UsdPrimValueGeomMesh::has_primvar(const UsdPrimValueGeomMesh::PrimVarType type) const {
+	return !get_primvar_name(type).is_empty();
+}
+
+Ref<UsdGeomPrimvar> UsdPrimValueGeomMesh::get_primvar(const UsdPrimValueGeomMesh::PrimVarType type) const {
+	Ref<UsdGeomPrimvar> result;
+	result.instantiate();
 
 	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
 	if (!mesh) {
-		return godot_uvs;
+		return result;
+	}
+
+	String primvar_name = get_primvar_name(type);
+	if (primvar_name.is_empty()) {
+		return result;
 	}
 
 	tinyusdz::GeomPrimvar primvar;
 	std::string err;
-	bool success = tinyusdz::tydra::GetGeomPrimvar(*_stage, mesh, "st", &primvar, &err);
-	ERR_FAIL_COND_V_MSG(!success, godot_uvs, String("Failed to get primvar: ") + err.c_str());
-	//TODO: I wasn't able to just use Value type so just used texcoord2f. Need to check if this can also be a double array
-	std::vector<tinyusdz::value::texcoord2f> value;
-	auto variability = primvar.get_attribute().variability();
-	success = primvar.get_value(&value, &err);
-	ERR_FAIL_COND_V_MSG(!success, godot_uvs, String("Failed to get value: ") + err.c_str());
-	return to_variant(value);
+
+	bool success = tinyusdz::tydra::GetGeomPrimvar(*_stage, mesh, primvar_name.utf8().get_data(), &primvar, &err);
+	ERR_FAIL_COND_V_MSG(!success, result, String("Failed to get primvar: ") + err.c_str());
+
+	result->set_name(primvar_name);
+
+	result->set_interpolation(UsdGeomPrimvar::interpolation_from_internal(primvar.get_interpolation()));
+
+	if (primvar.has_elementSize()) {
+		result->set_element_size(primvar.get_elementSize());
+	}
+
+	Array values;
+	switch (type) {
+		case PRIMVAR_TEX_UV:
+		case PRIMVAR_TEX_UV2: {
+			std::vector<tinyusdz::value::texcoord2f> value;
+			success = primvar.get_value(&value, &err);
+			ERR_FAIL_COND_V_MSG(!success, result, String("Failed to get UV value: ") + err.c_str());
+			values = to_variant(value);
+			break;
+		}
+		case PRIMVAR_COLOR: {
+			std::vector<tinyusdz::value::color3f> value;
+			success = primvar.get_value(&value, &err);
+			ERR_FAIL_COND_V_MSG(!success, result, String("Failed to get color value: ") + err.c_str());
+			values = to_variant(value);
+			break;
+		}
+		case PRIMVAR_BONES: {
+			std::vector<int32_t> value;
+			success = primvar.get_value(&value, &err);
+			ERR_FAIL_COND_V_MSG(!success, result, String("Failed to get bone indices: ") + err.c_str());
+			values = to_variant(value);
+			break;
+		}
+		case PRIMVAR_WEIGHTS: {
+			std::vector<float> value;
+			success = primvar.get_value(&value, &err);
+			ERR_FAIL_COND_V_MSG(!success, result, String("Failed to get bone weights: ") + err.c_str());
+			values = to_variant(value);
+			break;
+		}
+		default:
+			break;
+	}
+	result->set_values(values);
+
+	if (primvar.has_indices()) {
+		std::vector<int32_t> indices_vec = primvar.get_default_indices();
+		result->set_indices(to_variant(indices_vec));
+	}
+
+	return result;
+}
+
+Array UsdPrimValueGeomMesh::get_primvars() const {
+	Array result;
+
+	result.resize(PRIMVAR_INVALID);
+	for (int i = 0; i < PRIMVAR_INVALID; i++) {
+		Ref<UsdGeomPrimvar> primvar = get_primvar(static_cast<PrimVarType>(i));
+		if (primvar->get_name().is_empty()) {
+			continue;
+		}
+		result.set(i, primvar);
+	}
+
+	return result;
 }
 
 String UsdPrimValueGeomMesh::get_name() const {
@@ -651,7 +751,7 @@ Ref<UsdGeomMeshMaterialMap> UsdPrimValueGeomMesh::get_material_map() const {
 }
 
 UsdPrimValueGeomMesh::PrimVarType UsdPrimValueGeomMesh::primvar_type_from_string(const String &name) {
-	if (name == "st") {
+	if (name == "st" || name == "UVMap") {
 		return PRIMVAR_TEX_UV;
 	} else if (name == "st2") {
 		return PRIMVAR_TEX_UV2;
@@ -665,19 +765,26 @@ UsdPrimValueGeomMesh::PrimVarType UsdPrimValueGeomMesh::primvar_type_from_string
 	return PRIMVAR_INVALID;
 }
 
-String UsdPrimValueGeomMesh::primvar_type_to_string(UsdPrimValueGeomMesh::PrimVarType type) {
+PackedStringArray UsdPrimValueGeomMesh::primvar_type_to_string(const UsdPrimValueGeomMesh::PrimVarType type) {
+	PackedStringArray result;
 	switch (type) {
 		case PRIMVAR_TEX_UV:
-			return "st";
+			result.push_back("st");
+			result.push_back("UVMap");
+			break;
 		case PRIMVAR_TEX_UV2:
-			return "st2";
+			result.push_back("st2");
+			break;
 		case PRIMVAR_BONES:
-			return "skel:jointIndices";
+			result.push_back("skel:jointIndices");
+			break;
 		case PRIMVAR_WEIGHTS:
-			return "skel:jointWeights";
+			result.push_back("skel:jointWeights");
+			break;
 		default:
-			return String();
+			break;
 	}
+	return result;
 }
 
 String UsdPrimValueGeomMesh::_to_string() const {
@@ -699,13 +806,16 @@ void UsdPrimValueGeomMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_name"), &UsdPrimValueGeomMesh::get_name);
 	ClassDB::bind_method(D_METHOD("get_points"), &UsdPrimValueGeomMesh::get_points);
 	ClassDB::bind_method(D_METHOD("get_normals"), &UsdPrimValueGeomMesh::get_normals);
-	ClassDB::bind_method(D_METHOD("get_uvs"), &UsdPrimValueGeomMesh::get_uvs);
 	ClassDB::bind_method(D_METHOD("get_face_count"), &UsdPrimValueGeomMesh::get_face_count);
 	ClassDB::bind_method(D_METHOD("get_face_vertex_counts"), &UsdPrimValueGeomMesh::get_face_vertex_counts);
 	ClassDB::bind_method(D_METHOD("get_face_vertex_indices"), &UsdPrimValueGeomMesh::get_face_vertex_indices);
 	ClassDB::bind_method(D_METHOD("get_directly_bound_material"), &UsdPrimValueGeomMesh::get_directly_bound_material);
 	ClassDB::bind_method(D_METHOD("get_subset_materials"), &UsdPrimValueGeomMesh::get_subset_materials_godot);
 	ClassDB::bind_method(D_METHOD("get_material_map"), &UsdPrimValueGeomMesh::get_material_map);
+	ClassDB::bind_method(D_METHOD("get_primvar", "type"), &UsdPrimValueGeomMesh::get_primvar);
+	ClassDB::bind_method(D_METHOD("get_primvar_name", "type"), &UsdPrimValueGeomMesh::get_primvar_name);
+	ClassDB::bind_method(D_METHOD("has_primvar", "type"), &UsdPrimValueGeomMesh::has_primvar);
+	ClassDB::bind_method(D_METHOD("get_primvars"), &UsdPrimValueGeomMesh::get_primvars);
 
 	ClassDB::bind_static_method("UsdPrimValueGeomMesh", D_METHOD("primvar_type_from_string", "type"), &UsdPrimValueGeomMesh::primvar_type_from_string);
 	ClassDB::bind_static_method("UsdPrimValueGeomMesh", D_METHOD("primvar_type_to_string", "type"), &UsdPrimValueGeomMesh::primvar_type_to_string);
