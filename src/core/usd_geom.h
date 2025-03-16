@@ -127,6 +127,7 @@ private:
 	// ElementTypes are always FACE
 	PackedInt32Array _face_material_indices;
 	TypedArray<UsdPath> _materials;
+	PackedStringArray _surface_names;
 
 protected:
 	static void _bind_methods();
@@ -135,11 +136,14 @@ public:
 	PackedInt32Array get_face_material_indices() const;
 	void set_face_material_indices(const PackedInt32Array &indices);
 
-	/// Returns false if _face_material_indices is empty
+	/// Returns false if _face_material_indices is empty. This is done if 1 or no materials are bound
 	bool is_mapped() const;
 
 	TypedArray<UsdPath> get_materials() const;
 	void set_materials(const TypedArray<UsdPath> &materials);
+
+	PackedStringArray get_surface_names() const;
+	void set_surface_names(const PackedStringArray &names);
 
 	String _to_string() const;
 };

@@ -20,6 +20,8 @@ protected:
 public:
 	static Ref<UsdPath> create(const tinyusdz::Path &path);
 
+	static Ref<UsdPath> from_string(const String &path);
+
 	/// Returns the full path as a string (includes both prim and property parts)
 	String full_path() const;
 

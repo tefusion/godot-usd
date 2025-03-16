@@ -38,6 +38,7 @@ Ref<StandardMaterial3D> create_godot_material(
 		const Vector<Ref<godot::Texture2D>> &godot_textures) {
 	Ref<StandardMaterial3D> mat;
 	mat.instantiate();
+	mat->set_name(render_mat.display_name.c_str());
 
 	const tinyusdz::tydra::PreviewSurfaceShader &mat_shader = render_mat.surfaceShader;
 

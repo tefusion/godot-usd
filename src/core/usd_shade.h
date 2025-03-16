@@ -34,7 +34,6 @@ public:
 			const Vector<Ref<godot::Texture2D>> &textures,
 			const Vector<String> &image_paths,
 			const Vector<Ref<godot::Image>> &images);
-
 	PackedStringArray get_material_paths() const;
 	Ref<StandardMaterial3D> get_material(const String &abs_path) const;
 	Ref<StandardMaterial3D> get_material_with_path(const Ref<UsdPath> &path) const;

@@ -1,6 +1,7 @@
 #include "usd_common.h"
 
 void UsdPath::_bind_methods() {
+	ClassDB::bind_static_method("UsdPath", D_METHOD("from_string", "path"), &UsdPath::from_string);
 	ClassDB::bind_method(D_METHOD("full_path"), &UsdPath::full_path);
 	ClassDB::bind_method(D_METHOD("prim_path"), &UsdPath::prim_path);
 	ClassDB::bind_method(D_METHOD("property_path"), &UsdPath::property_path);
@@ -17,6 +18,13 @@ Ref<UsdPath> UsdPath::create(const tinyusdz::Path &path) {
 	Ref<UsdPath> usd_path;
 	usd_path.instantiate();
 	usd_path->set_path(path);
+	return usd_path;
+}
+
+Ref<UsdPath> UsdPath::from_string(const String &path) {
+	Ref<UsdPath> usd_path;
+	usd_path.instantiate();
+	usd_path->set_path(tinyusdz::Path(path.utf8().get_data(), ""));
 	return usd_path;
 }
 

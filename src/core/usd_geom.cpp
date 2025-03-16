@@ -396,6 +396,14 @@ TypedArray<UsdPath> UsdGeomMeshMaterialMap::get_materials() const {
 	return _materials;
 }
 
+PackedStringArray UsdGeomMeshMaterialMap::get_surface_names() const {
+	return _surface_names;
+}
+
+void UsdGeomMeshMaterialMap::set_surface_names(const PackedStringArray &names) {
+	_surface_names = names;
+}
+
 void UsdGeomMeshMaterialMap::set_materials(const TypedArray<UsdPath> &materials) {
 	_materials = materials;
 }
@@ -429,6 +437,9 @@ void UsdGeomMeshMaterialMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_materials"), &UsdGeomMeshMaterialMap::get_materials);
 	ClassDB::bind_method(D_METHOD("set_materials", "materials"), &UsdGeomMeshMaterialMap::set_materials);
 
+	ClassDB::bind_method(D_METHOD("get_surface_names"), &UsdGeomMeshMaterialMap::get_surface_names);
+	ClassDB::bind_method(D_METHOD("set_surface_names", "names"), &UsdGeomMeshMaterialMap::set_surface_names);
+
 	ClassDB::bind_method(D_METHOD("is_mapped"), &UsdGeomMeshMaterialMap::is_mapped);
 
 	ClassDB::bind_method(D_METHOD("_to_string"), &UsdGeomMeshMaterialMap::_to_string);
@@ -437,6 +448,7 @@ void UsdGeomMeshMaterialMap::_bind_methods() {
 			"set_face_material_indices", "get_face_material_indices");
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "materials", PROPERTY_HINT_ARRAY_TYPE, "UsdPath"),
 			"set_materials", "get_materials");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "surface_names"), "set_surface_names", "get_surface_names");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -727,12 +739,14 @@ Ref<UsdGeomMeshMaterialMap> UsdPrimValueGeomMesh::get_material_map() const {
 		face_material_indices.resize(total_face_count);
 		face_material_indices.fill(-1);
 		TypedArray<UsdPath> materials;
+		PackedStringArray surface_names;
 
 		for (int material_idx = 0; material_idx < subset_materials.size(); material_idx++) {
 			const Ref<UsdPrimValueGeomMaterialSubset> &subset = subset_materials[material_idx];
 			const Ref<UsdPath> &material = subset->get_bound_material();
 			const PackedInt32Array &indices = subset->get_indices();
 			materials.push_back(material);
+			surface_names.push_back(subset->get_name());
 
 			ERR_CONTINUE_MSG(subset->get_element_type() != UsdPrimValueGeomMaterialSubset::ElementType::FACE, "Material subset element type is not FACE");
 
@@ -745,6 +759,7 @@ Ref<UsdGeomMeshMaterialMap> UsdPrimValueGeomMesh::get_material_map() const {
 
 		godot_material_map->set_face_material_indices(face_material_indices);
 		godot_material_map->set_materials(materials);
+		godot_material_map->set_surface_names(surface_names);
 	}
 
 	return godot_material_map;

@@ -6,6 +6,7 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "convert/godot_scene.h"
 #include "core/usd_common.h"
 #include "core/usd_geom.h"
 #include "core/usd_prim.h"
@@ -29,6 +30,7 @@ void gdextension_initialize(ModuleInitializationLevel p_level) {
 		ClassDB::register_class<UsdPrimValueGeomMaterialSubset>();
 		ClassDB::register_class<UsdLoadedMaterials>();
 		ClassDB::register_class<UsdGeomMeshMaterialMap>();
+		ClassDB::register_class<UsdGodotSceneConverter>();
 	}
 }
 
