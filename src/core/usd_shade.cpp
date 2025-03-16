@@ -1,4 +1,5 @@
 #include "usd_shade.h"
+#include "core/usd_common.h"
 #include "godot_cpp/classes/image.hpp"
 #include "godot_cpp/classes/image_texture.hpp"
 #include "godot_cpp/classes/project_settings.hpp"
@@ -6,6 +7,7 @@
 #include "godot_cpp/classes/texture2d.hpp"
 #include "godot_cpp/templates/vector.hpp"
 #include "godot_cpp/variant/dictionary.hpp"
+#include "godot_cpp/variant/packed_string_array.hpp"
 #include "godot_cpp/variant/typed_array.hpp"
 #include "prim-types.hh"
 #include "tydra/render-data.hh"
@@ -92,6 +94,7 @@ Ref<StandardMaterial3D> create_godot_material(
 		APPLY_TEXTURE(occlusion, TEXTURE_AMBIENT_OCCLUSION)
 	}
 
+	//TODO: probably not correct
 	if (mat_shader.opacity.value < 1.0f) {
 		mat->set_transparency(BaseMaterial3D::TRANSPARENCY_ALPHA_SCISSOR);
 		mat->set_alpha_scissor_threshold(mat_shader.opacityThreshold.value);
@@ -161,11 +164,8 @@ Ref<UsdLoadedMaterials> extract_materials_impl(const tinyusdz::Stage &stage, con
 
 	// Create Godot materials
 	for (const auto &render_mat : render_materials) {
-		Ref<StandardMaterial3D> mat = create_godot_material(render_mat, loaded_textures, godot_textures);
 		godot_material_paths.push_back(render_mat.abs_path.c_str());
-
-		godot_material_paths.push_back(render_mat.abs_path.c_str());
-		godot_materials.push_back(mat);
+		godot_materials.push_back(create_godot_material(render_mat, loaded_textures, godot_textures));
 	}
 
 	return UsdLoadedMaterials::create(godot_material_paths, godot_materials, godot_textures, godot_image_paths, godot_images);
@@ -178,28 +178,11 @@ Ref<UsdLoadedMaterials> UsdLoadedMaterials::create(const Vector<String> &materia
 		const Vector<Ref<godot::Image>> &images) {
 	Ref<UsdLoadedMaterials> result;
 	result.instantiate();
-	result->set_material_paths(string_vector_to_typed_array(material_paths));
-	result->set_materials(ref_vector_to_typed_array<StandardMaterial3D>(materials));
+	result->set_materials(string_vector_to_typed_array(material_paths), ref_vector_to_typed_array(materials));
 	result->set_textures(ref_vector_to_typed_array<Texture2D>(textures));
 	result->set_image_paths(string_vector_to_typed_array(image_paths));
 	result->set_images(ref_vector_to_typed_array<Image>(images));
 	return result;
-}
-
-void UsdLoadedMaterials::set_material_paths(const TypedArray<String> &paths) {
-	_material_paths = paths;
-}
-
-TypedArray<String> UsdLoadedMaterials::get_material_paths() const {
-	return _material_paths;
-}
-
-void UsdLoadedMaterials::set_materials(const TypedArray<StandardMaterial3D> &materials) {
-	_materials = materials;
-}
-
-TypedArray<StandardMaterial3D> UsdLoadedMaterials::get_materials() const {
-	return _materials;
 }
 
 void UsdLoadedMaterials::set_textures(const TypedArray<godot::Texture2D> &textures) {
@@ -210,11 +193,11 @@ TypedArray<godot::Texture2D> UsdLoadedMaterials::get_textures() const {
 	return _textures;
 }
 
-void UsdLoadedMaterials::set_image_paths(const TypedArray<String> &paths) {
+void UsdLoadedMaterials::set_image_paths(const PackedStringArray &paths) {
 	_image_paths = paths;
 }
 
-TypedArray<String> UsdLoadedMaterials::get_image_paths() const {
+PackedStringArray UsdLoadedMaterials::get_image_paths() const {
 	return _image_paths;
 }
 
@@ -226,9 +209,44 @@ TypedArray<godot::Image> UsdLoadedMaterials::get_images() const {
 	return _images;
 }
 
+PackedStringArray UsdLoadedMaterials::get_material_paths() const {
+	PackedStringArray paths;
+	for (HashMap<String, Ref<StandardMaterial3D>>::ConstIterator it = _material_map.begin();
+			it != _material_map.end(); ++it) {
+		paths.push_back(it->key);
+	}
+	return paths;
+}
+
+Ref<StandardMaterial3D> UsdLoadedMaterials::get_material(const String &abs_path) const {
+	ERR_FAIL_COND_V_MSG(!_material_map.has(abs_path), Ref<StandardMaterial3D>(), "Material not found: " + abs_path);
+	return _material_map[abs_path];
+}
+
+Ref<StandardMaterial3D> UsdLoadedMaterials::get_material_with_path(const Ref<UsdPath> &path) const {
+	return get_material(path->full_path());
+}
+
+bool UsdLoadedMaterials::has_material(const String &abs_path) const {
+	return _material_map.has(abs_path);
+}
+
+void UsdLoadedMaterials::set_materials(const PackedStringArray &material_paths,
+		const TypedArray<StandardMaterial3D> &materials) {
+	_material_map.clear();
+	for (int i = 0; i < material_paths.size(); i++) {
+		if (i < materials.size()) {
+			Ref<StandardMaterial3D> material = materials[i];
+			if (material.is_valid()) {
+				_material_map[material_paths[i]] = material;
+			}
+		}
+	}
+}
+
 String UsdLoadedMaterials::_to_string() const {
 	String result = "UsdLoadedMaterials(";
-	result += "materials: " + String::num_int64(_materials.size());
+	result += "materials: " + String::num_int64(_material_map.size());
 	result += ", textures: " + String::num_int64(_textures.size());
 	result += ", images: " + String::num_int64(_images.size());
 	result += ")";
@@ -236,11 +254,11 @@ String UsdLoadedMaterials::_to_string() const {
 }
 
 void UsdLoadedMaterials::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("set_material_paths", "paths"), &UsdLoadedMaterials::set_material_paths);
 	ClassDB::bind_method(D_METHOD("get_material_paths"), &UsdLoadedMaterials::get_material_paths);
-
-	ClassDB::bind_method(D_METHOD("set_materials", "materials"), &UsdLoadedMaterials::set_materials);
-	ClassDB::bind_method(D_METHOD("get_materials"), &UsdLoadedMaterials::get_materials);
+	ClassDB::bind_method(D_METHOD("get_material", "abs_path"), &UsdLoadedMaterials::get_material);
+	ClassDB::bind_method(D_METHOD("get_material_with_path", "path"), &UsdLoadedMaterials::get_material_with_path);
+	ClassDB::bind_method(D_METHOD("has_material", "abs_path"), &UsdLoadedMaterials::has_material);
+	ClassDB::bind_method(D_METHOD("set_materials", "material_paths", "materials"), &UsdLoadedMaterials::set_materials);
 
 	ClassDB::bind_method(D_METHOD("set_textures", "textures"), &UsdLoadedMaterials::set_textures);
 	ClassDB::bind_method(D_METHOD("get_textures"), &UsdLoadedMaterials::get_textures);
@@ -253,9 +271,7 @@ void UsdLoadedMaterials::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_to_string"), &UsdLoadedMaterials::_to_string);
 
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "material_paths", PROPERTY_HINT_ARRAY_TYPE, "String"), "set_material_paths", "get_material_paths");
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "materials", PROPERTY_HINT_ARRAY_TYPE, "StandardMaterial3D"), "set_materials", "get_materials");
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "textures", PROPERTY_HINT_ARRAY_TYPE, "Texture2D"), "set_textures", "get_textures");
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "image_paths", PROPERTY_HINT_ARRAY_TYPE, "String"), "set_image_paths", "get_image_paths");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "image_paths"), "set_image_paths", "get_image_paths");
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "images", PROPERTY_HINT_ARRAY_TYPE, "Image"), "set_images", "get_images");
 }

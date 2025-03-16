@@ -6,12 +6,14 @@
 #include "core/usd_common.h"
 #include "core/usd_prim_type.h"
 #include "core/usd_prim_value.h"
+#include "godot_cpp/classes/standard_material3d.hpp"
 #include "godot_cpp/core/binder_common.hpp"
 #include "godot_cpp/variant/packed_int32_array.hpp"
 #include "godot_cpp/variant/packed_string_array.hpp"
 #include "godot_cpp/variant/packed_vector2_array.hpp"
 #include "godot_cpp/variant/packed_vector3_array.hpp"
 #include "godot_cpp/variant/transform3d.hpp"
+#include "godot_cpp/variant/typed_array.hpp"
 #include "prim-types.hh"
 
 using namespace godot;
@@ -95,6 +97,7 @@ public:
 	Ref<UsdPath> get_bound_material() const;
 	void set_bound_material(Ref<UsdPath> path);
 
+	/// For Material subsets this should always be FACE
 	ElementType get_element_type() const;
 	void set_element_type(ElementType type);
 
@@ -114,6 +117,30 @@ private:
 };
 
 VARIANT_ENUM_CAST(UsdPrimValueGeomMaterialSubset::ElementType);
+
+class UsdGeomMeshMaterialMap : public RefCounted {
+	GDCLASS(UsdGeomMeshMaterialMap, RefCounted);
+
+private:
+	// ElementTypes are always FACE
+	PackedInt32Array _face_material_indices;
+	TypedArray<UsdPath> _materials;
+
+protected:
+	static void _bind_methods();
+
+public:
+	PackedInt32Array get_face_material_indices() const;
+	void set_face_material_indices(const PackedInt32Array &indices);
+
+	/// Returns false if _face_material_indices is empty
+	bool is_mapped() const;
+
+	TypedArray<UsdPath> get_materials() const;
+	void set_materials(const TypedArray<UsdPath> &materials);
+
+	String _to_string() const;
+};
 
 class UsdPrimValueGeomMesh : public UsdPrimValue {
 	GDCLASS(UsdPrimValueGeomMesh, UsdPrimValue);
@@ -146,7 +173,9 @@ public:
 	PackedInt32Array get_face_vertex_indices() const;
 
 	Ref<UsdPath> get_directly_bound_material() const;
-	TypedArray<UsdPrimValueGeomMaterialSubset> get_materials() const;
+	Vector<Ref<UsdPrimValueGeomMaterialSubset>> get_subset_materials() const;
+	TypedArray<UsdPrimValueGeomMaterialSubset> get_subset_materials_godot() const;
+	Ref<UsdGeomMeshMaterialMap> get_material_map() const;
 
 	String _to_string() const;
 };
