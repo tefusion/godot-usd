@@ -60,6 +60,7 @@ void UsdStage::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_valid"), &UsdStage::is_valid);
 	ClassDB::bind_method(D_METHOD("get_prim_at_path", "path"), &UsdStage::get_prim_at_path);
 	ClassDB::bind_method(D_METHOD("get_root_prims"), &UsdStage::get_root_prims);
+	ClassDB::bind_method(D_METHOD("extract_materials"), &UsdStage::extract_materials);
 }
 
 bool UsdStage::load(const String &path) {
@@ -68,6 +69,7 @@ bool UsdStage::load(const String &path) {
 		_stage = std::shared_ptr<tinyusdz::Stage>(stage);
 		return true;
 	}
+	_loaded_path = path;
 	return false;
 }
 
@@ -93,6 +95,10 @@ TypedArray<UsdPrim> UsdStage::get_root_prims() const {
 
 bool UsdStage::is_valid() const {
 	return _stage != nullptr;
+}
+
+Ref<UsdLoadedMaterials> UsdStage::extract_materials() const {
+	return extract_materials_impl(*_stage, _loaded_path.get_base_dir());
 }
 
 UsdStage::UsdStage() :

@@ -8,6 +8,7 @@
 
 #include "usd_common.h"
 #include "usd_prim.h"
+#include "usd_shade.h"
 
 using namespace godot;
 
@@ -18,6 +19,7 @@ class UsdStage : public RefCounted {
 
 private:
 	std::shared_ptr<tinyusdz::Stage> _stage;
+	String _loaded_path = "";
 
 protected:
 	static void _bind_methods();
@@ -32,6 +34,11 @@ public:
 	Ref<UsdPrim> get_prim_at_path(Ref<UsdPath> path) const;
 
 	TypedArray<UsdPrim> get_root_prims() const;
+
+	void set_loaded_path(const String &path) { _loaded_path = path; }
+	String get_loaded_path() const { return _loaded_path; }
+
+	Ref<UsdLoadedMaterials> extract_materials() const;
 
 	UsdStage();
 };

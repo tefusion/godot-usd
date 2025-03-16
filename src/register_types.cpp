@@ -26,6 +26,7 @@ void gdextension_initialize(ModuleInitializationLevel p_level) {
 		ClassDB::register_class<UsdPrimValueGeomMesh>();
 		ClassDB::register_class<UsdGeomPrimvar>();
 		ClassDB::register_class<UsdPrimValueGeomMaterialSubset>();
+		ClassDB::register_class<UsdLoadedMaterials>();
 	}
 }
 
