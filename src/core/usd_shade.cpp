@@ -15,6 +15,95 @@
 
 using MaterialMap = std::map<std::string, const tinyusdz::Material *>;
 
+// Macro for applying texture to a material
+#define APPLY_TEXTURE(lname, rname)                                    \
+	const int64_t &tex_id = mat_shader.lname.texture_id;               \
+	ERR_FAIL_COND_V_MSG(tex_id < 0, mat, "Failed loading texture");    \
+	const Ref<godot::Texture> &godot_texture = godot_textures[tex_id]; \
+	mat->set_texture(BaseMaterial3D::TextureParam::rname, godot_texture);
+
+// Macro for handling material properties with texture fallback
+#define HANDLE_MATERIAL_PROPERTY(lname, rname, setter) \
+	if (mat_shader.lname.is_texture()) {               \
+		APPLY_TEXTURE(lname, rname)                    \
+	} else {                                           \
+		mat->setter(mat_shader.lname.value);           \
+	}
+
+Ref<StandardMaterial3D> create_godot_material(
+		const tinyusdz::tydra::RenderMaterial &render_mat,
+		const std::vector<tinyusdz::tydra::UVTexture> &loaded_textures,
+		const Vector<Ref<godot::Texture2D>> &godot_textures) {
+	Ref<StandardMaterial3D> mat;
+	mat.instantiate();
+
+	const tinyusdz::tydra::PreviewSurfaceShader &mat_shader = render_mat.surfaceShader;
+
+	// Handle diffuse color / albedo (special case with color conversion)
+	if (mat_shader.diffuseColor.is_texture()) {
+		APPLY_TEXTURE(diffuseColor, TEXTURE_ALBEDO)
+
+		//ref from gltf importer: https://github.com/godotengine/godot/blob/0028fd625e2c5b202e204bc12828cbca043213d3/modules/gltf/structures/gltf_texture_sampler.h#L87
+		const tinyusdz::tydra::UVTexture &texture = loaded_textures[tex_id];
+
+		//godot only supports full or no wrap
+		bool texture_repeat = texture.wrapS == tinyusdz::tydra::UVTexture::WrapMode::REPEAT &&
+				texture.wrapT == tinyusdz::tydra::UVTexture::WrapMode::REPEAT;
+		mat->set_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT, texture_repeat);
+
+		// TODO: TextureFilter? only saw that TextureImage has mipmap, but otherwise nothing
+
+		//uv1 scale/offset
+		const std::array<float, 2> &uv1_scale = texture.tx_scale;
+		const std::array<float, 2> &uv1_offset = texture.tx_translation;
+
+		//third component is just for triplanar textures
+		const Vector3 godot_uv1_scale = Vector3(uv1_scale[0], uv1_scale[1], 1.0);
+		const Vector3 godot_uv1_offset = Vector3(uv1_offset[0], uv1_offset[1], 0.0);
+		mat->set_uv1_scale(godot_uv1_scale);
+		mat->set_uv1_offset(godot_uv1_offset);
+	} else {
+		std::array<float, 3> diffuse_color = mat_shader.diffuseColor.value;
+		Color godot_diffuse_color = Color(diffuse_color[0], diffuse_color[1], diffuse_color[2]);
+		mat->set_albedo(godot_diffuse_color);
+	}
+
+	HANDLE_MATERIAL_PROPERTY(metallic, TEXTURE_METALLIC, set_metallic)
+	HANDLE_MATERIAL_PROPERTY(roughness, TEXTURE_ROUGHNESS, set_roughness)
+
+	if (mat_shader.emissiveColor.is_texture()) {
+		APPLY_TEXTURE(emissiveColor, TEXTURE_EMISSION)
+	} else {
+		std::array<float, 3> emissive_color = mat_shader.emissiveColor.value;
+		Color godot_emissive = Color(emissive_color[0], emissive_color[1], emissive_color[2]);
+		mat->set_emission(godot_emissive);
+	}
+
+	if (mat_shader.normal.is_texture()) {
+		APPLY_TEXTURE(normal, TEXTURE_NORMAL)
+	}
+
+	if (mat_shader.clearcoat.value > 0.0f || mat_shader.clearcoat.is_texture()) {
+		HANDLE_MATERIAL_PROPERTY(clearcoat, TEXTURE_CLEARCOAT, set_clearcoat)
+		HANDLE_MATERIAL_PROPERTY(clearcoatRoughness, TEXTURE_CLEARCOAT, set_clearcoat_roughness)
+	}
+
+	if (mat_shader.occlusion.is_texture()) {
+		APPLY_TEXTURE(occlusion, TEXTURE_AMBIENT_OCCLUSION)
+	}
+
+	if (mat_shader.opacity.value < 1.0f) {
+		mat->set_transparency(BaseMaterial3D::TRANSPARENCY_ALPHA_SCISSOR);
+		mat->set_alpha_scissor_threshold(mat_shader.opacityThreshold.value);
+	}
+
+	if (mat_shader.ior.value != 1.5f) {
+		mat->set_refraction(mat_shader.ior.value - 1.0f);
+	}
+
+	return mat;
+}
+
 Ref<UsdLoadedMaterials> extract_materials_impl(const tinyusdz::Stage &stage, const String &p_search_path = "") {
 	Ref<UsdLoadedMaterials> godot_material_map = nullptr;
 	tinyusdz::tydra::RenderSceneConverter converter;
@@ -72,40 +161,8 @@ Ref<UsdLoadedMaterials> extract_materials_impl(const tinyusdz::Stage &stage, con
 
 	// Create Godot materials
 	for (const auto &render_mat : render_materials) {
-		Ref<StandardMaterial3D> mat;
-		mat.instantiate();
-
-		const tinyusdz::tydra::PreviewSurfaceShader &mat_shader = render_mat.surfaceShader;
-		if (mat_shader.diffuseColor.is_texture()) {
-			const int64_t &tex_id = mat_shader.diffuseColor.texture_id;
-			ERR_CONTINUE_MSG(tex_id < 0, "Failed loading texture");
-			const Ref<godot::Texture> &godot_texture = godot_textures[tex_id];
-			mat->set_texture(BaseMaterial3D::TextureParam::TEXTURE_ALBEDO, godot_texture);
-
-			//ref from gltf importer: https://github.com/godotengine/godot/blob/0028fd625e2c5b202e204bc12828cbca043213d3/modules/gltf/structures/gltf_texture_sampler.h#L87
-			const tinyusdz::tydra::UVTexture &texture = loaded_textures[tex_id];
-
-			//godot only supports full or no wrap
-			bool texture_repeat = texture.wrapS == tinyusdz::tydra::UVTexture::WrapMode::REPEAT && texture.wrapT == tinyusdz::tydra::UVTexture::WrapMode::REPEAT;
-			mat->set_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT, texture_repeat);
-
-			// TODO: TextureFilter? only saw that TextureImage has mipmap, but otherwise nothing
-
-			//uv1 scale/offset
-			const std::array<float, 2> &uv1_scale = texture.tx_scale;
-			const std::array<float, 2> &uv1_offset = texture.tx_translation;
-
-			//third component is just for triplanar textures
-			const Vector3 godot_uv1_scale = Vector3(uv1_scale[0], uv1_scale[1], 1.0);
-			const Vector3 godot_uv1_offset = Vector3(uv1_offset[0], uv1_offset[1], 0.0);
-			mat->set_uv1_scale(godot_uv1_scale);
-			mat->set_uv1_offset(godot_uv1_offset);
-		} else {
-			std::array<float, 3> diffuse_color = mat_shader.diffuseColor.value;
-			Color godot_diffuse_color = Color(diffuse_color[0], diffuse_color[1], diffuse_color[2]);
-			mat->set_albedo(godot_diffuse_color);
-		}
-		//TODO all other properties
+		Ref<StandardMaterial3D> mat = create_godot_material(render_mat, loaded_textures, godot_textures);
+		godot_material_paths.push_back(render_mat.abs_path.c_str());
 
 		godot_material_paths.push_back(render_mat.abs_path.c_str());
 		godot_materials.push_back(mat);
