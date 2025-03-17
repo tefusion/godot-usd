@@ -3,7 +3,7 @@
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-#include "core/usd_prim_type.h"
+#include "usd/usd_prim_type.h"
 
 #include "prim-types.hh"
 #include "stage.hh"

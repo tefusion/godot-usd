@@ -1,7 +1,7 @@
-#include "core/usd_geom.h"
-#include "core/usd_stage.h"
 #include "godot_cpp/classes/array_mesh.hpp"
 #include "godot_cpp/classes/object.hpp"
+#include "usd/usd_geom.h"
+#include "usd/usd_stage.h"
 
 using namespace godot;
 class UsdGodotSceneConverter : public Object {

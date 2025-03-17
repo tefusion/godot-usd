@@ -7,12 +7,12 @@
 #include <godot_cpp/godot.hpp>
 
 #include "convert/godot_scene.h"
-#include "core/usd_common.h"
-#include "core/usd_geom.h"
-#include "core/usd_prim.h"
-#include "core/usd_prim_type.h"
-#include "core/usd_prim_value.h"
-#include "core/usd_stage.h"
+#include "usd/usd_common.h"
+#include "usd/usd_geom.h"
+#include "usd/usd_prim.h"
+#include "usd/usd_prim_type.h"
+#include "usd/usd_prim_value.h"
+#include "usd/usd_stage.h"
 
 using namespace godot;
 

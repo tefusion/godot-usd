@@ -1,17 +1,13 @@
-#include "core/usd_common.h"
 #include "godot_cpp/classes/image.hpp"
 #include "godot_cpp/classes/ref_counted.hpp"
 #include "godot_cpp/classes/standard_material3d.hpp"
-#include "godot_cpp/classes/texture.hpp"
 #include "godot_cpp/classes/texture2d.hpp"
 #include "godot_cpp/templates/hash_map.hpp"
-#include "godot_cpp/variant/dictionary.hpp"
 #include "godot_cpp/variant/packed_string_array.hpp"
 #include "godot_cpp/variant/typed_array.hpp"
-#include "godot_cpp/variant/utility_functions.hpp"
+#include "usd/usd_common.h"
 
 #include "stage.hh"
-#include "tinyusdz.hh"
 
 using namespace godot;
 

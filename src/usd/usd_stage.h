@@ -4,7 +4,6 @@
 #include <godot_cpp/core/class_db.hpp>
 
 #include "godot_cpp/variant/typed_array.hpp"
-#include "tinyusdz.hh"
 
 #include "usd_common.h"
 #include "usd_prim.h"

@@ -1,5 +1,4 @@
 #include "usd_shade.h"
-#include "core/usd_common.h"
 #include "godot_cpp/classes/image.hpp"
 #include "godot_cpp/classes/image_texture.hpp"
 #include "godot_cpp/classes/project_settings.hpp"
@@ -12,6 +11,7 @@
 #include "prim-types.hh"
 #include "tydra/render-data.hh"
 #include "tydra/scene-access.hh"
+#include "usd/usd_common.h"
 
 #include "utils/godot_utils.h"
 

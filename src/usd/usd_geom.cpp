@@ -1,11 +1,11 @@
 #include "usd_geom.h"
-#include "core/usd_common.h"
 #include "godot_cpp/core/error_macros.hpp"
 #include "godot_cpp/core/object.hpp"
 #include "godot_cpp/variant/packed_int32_array.hpp"
 #include "godot_cpp/variant/packed_string_array.hpp"
 #include "godot_cpp/variant/typed_array.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
+#include "usd/usd_common.h"
 
 #include "token-type.hh"
 #include "tydra/scene-access.hh"
