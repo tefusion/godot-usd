@@ -14,5 +14,5 @@ public:
 	UsdGodotSceneConverter();
 	~UsdGodotSceneConverter();
 
-	Ref<ArrayMesh> convert_mesh(const Ref<UsdPrimValueGeomMesh> &geom_mesh, const Ref<UsdLoadedMaterials> &materials);
+	Ref<ArrayMesh> convert_mesh(const Ref<UsdPrimValueGeomMesh> &geom_mesh, const Ref<UsdLoadedMaterials> &materials, const Vector3::Axis up_axis);
 };

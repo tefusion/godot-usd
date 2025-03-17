@@ -116,7 +116,6 @@ String UsdGeomPrimvar::_to_string() const {
 	return info;
 }
 
-// Add this to bind the methods of UsdPrimvar
 void UsdGeomPrimvar::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_name"), &UsdGeomPrimvar::get_name);
 	ClassDB::bind_method(D_METHOD("set_name", "name"), &UsdGeomPrimvar::set_name);
@@ -296,8 +295,6 @@ UsdPrimValueGeomMaterialSubset::ElementType UsdPrimValueGeomMaterialSubset::elem
 			return FACE;
 		case tinyusdz::GeomSubset::ElementType::Point:
 			return POINT;
-		default:
-			return FACE; // Default to FACE if unknown
 	}
 }
 

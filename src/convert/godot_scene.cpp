@@ -4,7 +4,7 @@
 #include "utils/geom_utils.h"
 
 void UsdGodotSceneConverter::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("convert_mesh", "geom_mesh", "materials"), &UsdGodotSceneConverter::convert_mesh);
+	ClassDB::bind_method(D_METHOD("convert_mesh", "geom_mesh", "materials", "up_axis"), &UsdGodotSceneConverter::convert_mesh);
 }
 
 UsdGodotSceneConverter::UsdGodotSceneConverter() {
@@ -13,14 +13,16 @@ UsdGodotSceneConverter::UsdGodotSceneConverter() {
 UsdGodotSceneConverter::~UsdGodotSceneConverter() {
 }
 
-Ref<ArrayMesh> UsdGodotSceneConverter::convert_mesh(const Ref<UsdPrimValueGeomMesh> &geom_mesh, const Ref<UsdLoadedMaterials> &materials) {
+Ref<ArrayMesh> UsdGodotSceneConverter::convert_mesh(const Ref<UsdPrimValueGeomMesh> &geom_mesh, const Ref<UsdLoadedMaterials> &materials, const Vector3::Axis up_axis = Vector3::AXIS_Y) {
 	ERR_FAIL_COND_V_MSG(geom_mesh.is_null(), nullptr, "GeomMesh is null");
+	ERR_FAIL_COND_V_MSG(materials.is_null(), nullptr, "Materials is null");
+	ERR_FAIL_COND_V_MSG(up_axis == Vector3::AXIS_X, nullptr, "Up axis must be Y or Z");
 
 	Ref<ArrayMesh> mesh;
 	mesh.instantiate();
 
-	PackedVector3Array points = geom_mesh->get_points();
-	PackedVector3Array normals = geom_mesh->get_normals();
+	PackedVector3Array points = apply_up_axis(geom_mesh->get_points(), up_axis);
+	PackedVector3Array normals = apply_up_axis(geom_mesh->get_normals(), up_axis);
 	PackedInt32Array face_vertex_counts = geom_mesh->get_face_vertex_counts();
 	PackedInt32Array face_vertex_indices = geom_mesh->get_face_vertex_indices();
 

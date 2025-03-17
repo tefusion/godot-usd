@@ -188,3 +188,35 @@ bool triangulate_polygon(
 
 	return true;
 }
+
+PackedVector3Array apply_up_axis(const PackedVector3Array &array, const Vector3::Axis axis) {
+	if (axis == Vector3::AXIS_Y) {
+		return array;
+	}
+
+	PackedVector3Array result;
+	result.resize(array.size());
+	for (int i = 0; i < array.size(); i++) {
+		result.set(i, apply_up_axis(array[i], axis));
+	}
+	return result;
+}
+
+Transform3D apply_up_axis(const Transform3D &transform, const Vector3::Axis axis) {
+	if (axis == Vector3::AXIS_Y) {
+		return transform;
+	}
+
+	Transform3D result;
+	result.basis = apply_up_axis(transform.basis, axis);
+	result.origin = apply_up_axis(transform.origin, axis);
+	return result;
+}
+
+Basis apply_up_axis(const Basis &basis, const Vector3::Axis axis) {
+	if (axis == Vector3::AXIS_Y) {
+		return basis;
+	}
+
+	return basis.rotated(Vector3(1, 0, 0), Math_PI / 2.0);
+}

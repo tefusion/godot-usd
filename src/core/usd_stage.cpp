@@ -39,7 +39,6 @@ tinyusdz::Stage *UsdStage::load_stage(const String &path) {
 		return nullptr;
 	}
 
-	// Create new stage and move the data
 	auto stage = new tinyusdz::Stage(reader.get_stage());
 	return stage;
 }
@@ -57,6 +56,7 @@ void UsdStage::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_prim_at_path", "path"), &UsdStage::get_prim_at_path);
 	ClassDB::bind_method(D_METHOD("get_root_prims"), &UsdStage::get_root_prims);
 	ClassDB::bind_method(D_METHOD("extract_materials"), &UsdStage::extract_materials);
+	ClassDB::bind_method(D_METHOD("get_up_axis"), &UsdStage::get_up_axis);
 }
 
 bool UsdStage::load(const String &path) {
@@ -95,6 +95,17 @@ bool UsdStage::is_valid() const {
 
 Ref<UsdLoadedMaterials> UsdStage::extract_materials() const {
 	return extract_materials_impl(*_stage, _loaded_path.get_base_dir());
+}
+
+Vector3::Axis UsdStage::get_up_axis() const {
+	switch (_stage->metas().upAxis.get_value()) {
+		case tinyusdz::Axis::Y:
+			return Vector3::AXIS_Y;
+		case tinyusdz::Axis::Z:
+			return Vector3::AXIS_Z;
+		default: //unknown
+			return Vector3::AXIS_Y;
+	}
 }
 
 UsdStage::UsdStage() :

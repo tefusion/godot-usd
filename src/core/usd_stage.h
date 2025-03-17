@@ -40,5 +40,7 @@ public:
 
 	Ref<UsdLoadedMaterials> extract_materials() const;
 
+	Vector3::Axis get_up_axis() const;
+
 	UsdStage();
 };
