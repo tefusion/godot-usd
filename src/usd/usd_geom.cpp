@@ -293,7 +293,7 @@ UsdPrimValueGeomMaterialSubset::ElementType UsdPrimValueGeomMaterialSubset::elem
 	switch (type) {
 		case tinyusdz::GeomSubset::ElementType::Face:
 			return FACE;
-		case tinyusdz::GeomSubset::ElementType::Point:
+		default:
 			return POINT;
 	}
 }
@@ -302,10 +302,8 @@ tinyusdz::GeomSubset::ElementType UsdPrimValueGeomMaterialSubset::element_type_t
 	switch (type) {
 		case FACE:
 			return tinyusdz::GeomSubset::ElementType::Face;
-		case POINT:
-			return tinyusdz::GeomSubset::ElementType::Point;
 		default:
-			return tinyusdz::GeomSubset::ElementType::Face; // Default to Face if unknown
+			return tinyusdz::GeomSubset::ElementType::Point;
 	}
 }
 
