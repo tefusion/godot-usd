@@ -1,0 +1,35 @@
+## TinyUSDZ Third Party Licenses
+
+This file contains the licenses for third party software used by TinyUSDZ. No guarantee these are up to date.
+
+The license paths are relative to the tinyusdz project root.
+
+schema/usdz/LICENSE/LICENSE.txt
+data/materialx/LICENSE
+sandbox/reflection/Reflect.LICENSE
+src/lz4/LICENSE
+src/external/pugixml.LICENSE
+src/external/tinycolorio.LICENSE
+src/external/linalg.UNLICENSE
+src/external/pystring.LICENSE
+src/external/jeaiii_to_text.LICENSE
+src/external/dtoa_milo.LICENSE
+src/external/LICENSE.miniz
+src/external/LICENSE.ogt_vox.md
+src/external/jsonhpp/LICENSE.MIT
+src/external/jsteemann/LICENSE
+src/external/filesystem/LICENSE
+src/external/glob/LICENSE
+src/external/simple_match/LICENSE_1_0.txt
+src/external/fast_float/LICENSE-BOOST
+src/external/fast_float/LICENSE-APACHE
+src/external/fast_float/LICENSE-MIT
+src/external/pybind11/LICENSE
+src/external/floaxie/LICENSE
+src/external/OpenFBX/LICENSE
+src/external/alac/LICENSE
+src/external/mapbox/eternal/LICENSE.md
+src/external/mapbox/earcut/LICENSE
+src/external/nanobind/LICENSE
+src/external/nanobind/ext/robin_map/LICENSE
+src/external/string_id/LICENSE

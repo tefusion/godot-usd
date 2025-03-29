@@ -115,18 +115,20 @@ jobs:
           scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' arch='${{ matrix.arch }}' -j2
           ls -l project/addons/*/bin/
 
-      # TODO activate again once released
-      # - name: Copy README and Licensing files
-      #   shell: sh
-      #   run: |
-      #     for addon in ${{ github.workspace }}/project/addons/*/; do
-      #       cp --no-clobber '${{ github.workspace }}/README.md' '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/AUTHORS.md' '${{ github.workspace }}/THIRDPARTY.md' "$addon"
-      #     done
-      - name: Remove unwanted files from artifact
+      - name: Copy README and Licensing files
         shell: sh
         run: |
-          rm -rf ${{ github.workspace }}/project/test
-          rm ${{ github.workspace }}/project/project.godot ${{ github.workspace }}/project/.gitignore ${{ github.workspace }}/project/.gitattributes
+          cp --no-clobber '${{ github.workspace }}/README.md' '${{ github.workspace }}/LICENSE' '${{ github.workspace }}/THIRDPARTY.md' '${{ github.workspace }}/THIRDPARTY-tinyusdz.txt' "${{ github.workspace }}/project/addons/godot_usd/"
+
+      - name: Remove unwanted files from artifact (only keep godot_usd with folder structure)
+        shell: sh
+        run: |
+          mkdir -p temp/addons
+          mv ${{ github.workspace }}/project/addons/godot_usd temp/addons/
+          rm -rf ${{ github.workspace }}/project
+          mkdir -p ${{ github.workspace }}/project
+          mv temp/addons ${{ github.workspace }}/project/
+          rm -rf temp
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
