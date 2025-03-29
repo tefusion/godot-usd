@@ -6,7 +6,7 @@ godot-usd uses the following third-party sources:
 2. OpenSubdiv -  Modified Apache 2.0 License -  https://github.com/PixarAnimationStudios/OpenSubdiv/tree/7d0ab5530feef693ac0a920585b5c663b80773b3
 3. godotengine/godot-cpp - MIT License -  https://github.com/godotengine/godot-cpp/tree/714c9e2c165db2dcb7e6ea57e62a04204d3cfbfa
 4. godotengine/godot - MIT License -  https://github.com/godotengine/godot/tree/361d9b514ef969a44f596c0bab9c86d9521379f3
-
+5. gdUnit4 - MIT License - https://github.com/MikeSchulze/gdUnit4/tree/39375d9595ed64702a0c8a92dd48322180c68ade
 
 ## License Texts
 
@@ -244,6 +244,35 @@ SOFTWARE.
 
 Copyright (c) 2007-2022 Juan Linietsky, Ariel Manzur.
 Copyright (c) 2014-2022 Godot Engine contributors (cf. AUTHORS.md).
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+```
+
+## MikeSchulze/gdUnit4
+`project/addons/gdUnit4/LICENSE`
+
+```
+
+MIT License
+
+Copyright (c) 2023 Mike Schulze
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
