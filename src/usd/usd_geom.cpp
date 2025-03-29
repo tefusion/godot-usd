@@ -10,23 +10,11 @@
 #include "token-type.hh"
 #include "tydra/scene-access.hh"
 #include "tydra/shader-network.hh"
+#include "usd/usd_prim_value.h"
 #include "usdGeom.hh"
 #include "utils/godot_utils.h"
 #include "utils/type_utils.h"
 #include "value-types.hh"
-
-template <typename T>
-const T *get_typed_prim(const tinyusdz::Prim *_prim) {
-	if (!_prim) {
-		return nullptr;
-	}
-
-	if (!_prim->is<T>()) {
-		return nullptr;
-	}
-
-	return _prim->as<T>();
-}
 
 UsdGeomPrimvar::Interpolation UsdGeomPrimvar::interpolation_from_internal(tinyusdz::Interpolation interpolation) {
 	switch (interpolation) {
@@ -571,6 +559,7 @@ Ref<UsdGeomPrimvar> UsdPrimValueGeomMesh::get_primvar(const UsdPrimValueGeomMesh
 			break;
 		}
 		default:
+			ERR_FAIL_V_MSG(result, "Unsupported primvar type");
 			break;
 	}
 	result->set_values(values);
@@ -596,6 +585,34 @@ Array UsdPrimValueGeomMesh::get_primvars() const {
 	}
 
 	return result;
+}
+
+bool UsdPrimValueGeomMesh::has_geom_bind_transform() const {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	return mesh->has_primvar("skel:geomBindTransform");
+}
+
+Transform3D UsdPrimValueGeomMesh::get_geom_bind_transform() const {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+
+	//just copied over from tydra render-data
+	if (has_geom_bind_transform()) {
+		tinyusdz::GeomPrimvar bindTransformPvar;
+
+		if (!tinyusdz::tydra::GetGeomPrimvar(*_stage, mesh, "skel:geomBindTransform", &bindTransformPvar)) {
+			ERR_FAIL_V_MSG(Transform3D(), "Failed to get `skel:geomBindTransform` attribute. "
+										  "Ensure `skel:geomBindTransform` is type `matrix4d`");
+		}
+
+		tinyusdz::value::matrix4d bindTransform;
+		if (!bindTransformPvar.get_value(&bindTransform)) {
+			ERR_FAIL_V_MSG(Transform3D(), "Failed to get `skel:geomBindTransform` attribute. "
+										  "Ensure `skel:geomBindTransform` is type `matrix4d`");
+		}
+		return to_variant(bindTransform);
+	}
+
+	return Transform3D();
 }
 
 String UsdPrimValueGeomMesh::get_name() const {
@@ -760,6 +777,23 @@ Ref<UsdGeomMeshMaterialMap> UsdPrimValueGeomMesh::get_material_map() const {
 	return godot_material_map;
 }
 
+bool UsdPrimValueGeomMesh::has_skeleton() const {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	return mesh->skeleton.has_value();
+}
+
+Ref<UsdPrimValueSkeleton> UsdPrimValueGeomMesh::get_skeleton() const {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	const tinyusdz::Path skel_path = mesh->skeleton.value().targetPath;
+	const auto &skel_prim_req = _stage->GetPrimAtPath(skel_path);
+	ERR_FAIL_COND_V_MSG(!skel_prim_req.has_value(), Ref<UsdPrimValueSkeleton>(), "Skeleton prim not found");
+	const tinyusdz::Prim *skel_prim = skel_prim_req.value();
+	Ref<UsdPrimValue> val = UsdPrimValue::create(skel_prim, _stage);
+	ERR_FAIL_COND_V_MSG(!val.is_valid(), Ref<UsdPrimValueSkeleton>(), "Failed to create skeleton prim value");
+	ERR_FAIL_COND_V_MSG(val->get_type() != UsdPrimType::USD_PRIM_TYPE_SKELETON, Ref<UsdPrimValueSkeleton>(), "Skeleton prim value is not of type skeleton");
+	return val;
+}
+
 UsdPrimValueGeomMesh::PrimVarType UsdPrimValueGeomMesh::primvar_type_from_string(const String &name) {
 	if (name == "st" || name == "UVMap") {
 		return PRIMVAR_TEX_UV;
@@ -826,11 +860,13 @@ void UsdPrimValueGeomMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_primvar_name", "type"), &UsdPrimValueGeomMesh::get_primvar_name);
 	ClassDB::bind_method(D_METHOD("has_primvar", "type"), &UsdPrimValueGeomMesh::has_primvar);
 	ClassDB::bind_method(D_METHOD("get_primvars"), &UsdPrimValueGeomMesh::get_primvars);
+	ClassDB::bind_method(D_METHOD("has_skeleton"), &UsdPrimValueGeomMesh::has_skeleton);
+	ClassDB::bind_method(D_METHOD("get_skeleton"), &UsdPrimValueGeomMesh::get_skeleton);
+	ClassDB::bind_method(D_METHOD("has_geom_bind_transform"), &UsdPrimValueGeomMesh::has_geom_bind_transform);
+	ClassDB::bind_method(D_METHOD("get_geom_bind_transform"), &UsdPrimValueGeomMesh::get_geom_bind_transform);
 
 	ClassDB::bind_static_method("UsdPrimValueGeomMesh", D_METHOD("primvar_type_from_string", "type"), &UsdPrimValueGeomMesh::primvar_type_from_string);
 	ClassDB::bind_static_method("UsdPrimValueGeomMesh", D_METHOD("primvar_type_to_string", "type"), &UsdPrimValueGeomMesh::primvar_type_to_string);
-
-	ClassDB::bind_method(D_METHOD("_to_string"), &UsdPrimValueGeomMesh::_to_string);
 
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_VECTOR3_ARRAY, "points"), "", "get_points");
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_VECTOR3_ARRAY, "normals"), "", "get_normals");

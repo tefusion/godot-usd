@@ -40,3 +40,16 @@ bool xform_get_value(const tinyusdz::XformOp &xform, T &result) {
 	}
 	return false;
 }
+
+template <typename T>
+const T *get_typed_prim(const tinyusdz::Prim *_prim) {
+	if (!_prim) {
+		return nullptr;
+	}
+
+	if (!_prim->is<T>()) {
+		return nullptr;
+	}
+
+	return _prim->as<T>();
+}

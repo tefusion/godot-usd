@@ -18,6 +18,10 @@ UsdPrimType::Type UsdPrim::get_prim_type(const tinyusdz::Prim *prim) {
 			return UsdPrimType::USD_PRIM_TYPE_SCOPE;
 		case tinyusdz::value::TYPE_ID_GEOM_GEOMSUBSET:
 			return UsdPrimType::USD_PRIM_TYPE_GEOM_SUBSET;
+		case tinyusdz::value::TYPE_ID_SKELETON:
+			return UsdPrimType::USD_PRIM_TYPE_SKELETON;
+		case tinyusdz::value::TYPE_ID_SKEL_ROOT:
+			return UsdPrimType::USD_PRIM_TYPE_SKELETON_ROOT;
 		default:
 			return UsdPrimType::USD_PRIM_TYPE_UNKNOWN;
 	}

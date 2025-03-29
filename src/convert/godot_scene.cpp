@@ -1,10 +1,14 @@
 #include "godot_scene.h"
 #include "godot_cpp/classes/array_mesh.hpp"
+#include "godot_cpp/classes/skeleton3d.hpp"
+#include "godot_cpp/core/memory.hpp"
 #include "godot_cpp/variant/array.hpp"
+#include "godot_cpp/variant/packed_string_array.hpp"
 #include "utils/geom_utils.h"
 
 void UsdGodotSceneConverter::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("convert_mesh", "geom_mesh", "materials", "up_axis"), &UsdGodotSceneConverter::convert_mesh);
+	ClassDB::bind_method(D_METHOD("convert_skeleton", "skeleton"), &UsdGodotSceneConverter::convert_skeleton);
 }
 
 UsdGodotSceneConverter::UsdGodotSceneConverter() {
@@ -197,4 +201,46 @@ Ref<ArrayMesh> UsdGodotSceneConverter::convert_mesh(const Ref<UsdPrimValueGeomMe
 	}
 
 	return mesh;
+}
+
+Skeleton3D *UsdGodotSceneConverter::convert_skeleton(const Ref<UsdPrimValueSkeleton> &skeleton) {
+	ERR_FAIL_COND_V_MSG(skeleton.is_null(), nullptr, "Skeleton is null");
+
+	Skeleton3D *godot_skeleton = memnew(Skeleton3D);
+
+	// Can infer hierarchy from naming e.g. "Bone/Bone1" means Bone1 is child of Bone
+	PackedStringArray joints = skeleton->get_joints();
+	TypedArray<Transform3D> rest_transforms = skeleton->get_rest_transforms();
+	Array bone_lengths = skeleton->get_bone_lengths();
+
+	HashMap<String, int> bone_name_to_idx;
+
+	for (int bone_idx = 0; bone_idx < joints.size(); bone_idx++) {
+		String joint_name = joints[bone_idx];
+		Transform3D rest_transform = rest_transforms[bone_idx];
+		float bone_length = bone_lengths[bone_idx];
+
+		PackedStringArray path = joint_name.split("/");
+		String bone_name = path[path.size() - 1];
+
+		int parent_idx = -1;
+		if (path.size() > 1) {
+			String parent_path = String();
+			for (int j = 0; j < path.size() - 1; j++) {
+				if (j > 0) {
+					parent_path += "/";
+				}
+				parent_path += path[j];
+			}
+			parent_idx = bone_name_to_idx.has(parent_path) ? bone_name_to_idx[parent_path] : -1;
+		}
+
+		godot_skeleton->add_bone(bone_name);
+		godot_skeleton->set_bone_rest(bone_idx, rest_transform);
+		godot_skeleton->set_bone_parent(bone_idx, parent_idx);
+
+		bone_name_to_idx[joint_name] = bone_idx;
+	}
+
+	return godot_skeleton;
 }

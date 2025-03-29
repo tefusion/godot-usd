@@ -42,7 +42,6 @@ Ref<StandardMaterial3D> create_godot_material(
 
 	const tinyusdz::tydra::PreviewSurfaceShader &mat_shader = render_mat.surfaceShader;
 
-	// Handle diffuse color / albedo (special case with color conversion)
 	if (mat_shader.diffuseColor.is_texture()) {
 		APPLY_TEXTURE(diffuseColor, TEXTURE_ALBEDO)
 
@@ -112,7 +111,7 @@ Ref<UsdLoadedMaterials> extract_materials_impl(const tinyusdz::Stage &stage, con
 	Ref<UsdLoadedMaterials> godot_material_map = nullptr;
 	tinyusdz::tydra::RenderSceneConverter converter;
 	tinyusdz::tydra::RenderSceneConverterEnv env(stage);
-	// We need to load materials since otherwise they won't be added to the image list
+	// We need to load textures since otherwise they won't be added to the image list
 	// Main issue is that if tinyusdz doesn't support a image format, this won't work
 	// TODO: search for images.emplace_back(texImage); in render-data.cc, we could try adjusting TextureImage to also support just holding a path
 	env.scene_config.load_texture_assets = true;
@@ -270,8 +269,6 @@ void UsdLoadedMaterials::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_images", "images"), &UsdLoadedMaterials::set_images);
 	ClassDB::bind_method(D_METHOD("get_images"), &UsdLoadedMaterials::get_images);
-
-	ClassDB::bind_method(D_METHOD("_to_string"), &UsdLoadedMaterials::_to_string);
 
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "textures", PROPERTY_HINT_ARRAY_TYPE, "Texture2D"), "set_textures", "get_textures");
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "image_paths"), "set_image_paths", "get_image_paths");

@@ -12,6 +12,7 @@
 #include "usd/usd_prim.h"
 #include "usd/usd_prim_type.h"
 #include "usd/usd_prim_value.h"
+#include "usd/usd_skel.h"
 #include "usd/usd_stage.h"
 
 using namespace godot;
@@ -30,6 +31,8 @@ void gdextension_initialize(ModuleInitializationLevel p_level) {
 		ClassDB::register_class<UsdLoadedMaterials>();
 		ClassDB::register_class<UsdGeomMeshMaterialMap>();
 		ClassDB::register_class<UsdGodotSceneConverter>();
+		ClassDB::register_class<UsdPrimValueSkeleton>();
+		ClassDB::register_class<UsdPrimValueSkeletonRoot>();
 	}
 }
 

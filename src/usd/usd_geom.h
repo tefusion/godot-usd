@@ -14,6 +14,7 @@
 #include "usd/usd_common.h"
 #include "usd/usd_prim_type.h"
 #include "usd/usd_prim_value.h"
+#include "usd/usd_skel.h"
 
 using namespace godot;
 
@@ -173,6 +174,9 @@ public:
 	Ref<UsdGeomPrimvar> get_primvar(const PrimVarType type) const;
 	Array get_primvars() const;
 
+	bool has_geom_bind_transform() const;
+	Transform3D get_geom_bind_transform() const;
+
 	virtual UsdPrimType::Type get_type() const override;
 
 	String get_name() const;
@@ -186,6 +190,9 @@ public:
 	Vector<Ref<UsdPrimValueGeomMaterialSubset>> get_subset_materials() const;
 	TypedArray<UsdPrimValueGeomMaterialSubset> get_subset_materials_godot() const;
 	Ref<UsdGeomMeshMaterialMap> get_material_map() const;
+
+	bool has_skeleton() const;
+	Ref<UsdPrimValueSkeleton> get_skeleton() const;
 
 	String _to_string() const;
 };

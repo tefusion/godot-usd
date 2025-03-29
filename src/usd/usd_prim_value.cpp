@@ -25,6 +25,12 @@ Ref<UsdPrimValue> UsdPrimValue::create(const tinyusdz::Prim *p_prim, std::shared
 		case UsdPrimType::USD_PRIM_TYPE_MESH:
 			prim_value = create_typed<UsdPrimValueGeomMesh>();
 			break;
+		case UsdPrimType::USD_PRIM_TYPE_SKELETON:
+			prim_value = create_typed<UsdPrimValueSkeleton>();
+			break;
+		case UsdPrimType::USD_PRIM_TYPE_SKELETON_ROOT:
+			prim_value = create_typed<UsdPrimValueSkeletonRoot>();
+			break;
 		default:
 			prim_value = create_typed<UsdPrimValue>();
 	}
