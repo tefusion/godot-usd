@@ -9,37 +9,35 @@
 #include "usd_prim.h"
 #include "usd_shade.h"
 
-using namespace godot;
-
 /// Represents a USD stage
 /// Once loaded can't change values so this is a read-only object
-class UsdStage : public RefCounted {
+class UsdStage : public godot::RefCounted {
 	GDCLASS(UsdStage, RefCounted);
 
 private:
 	std::shared_ptr<tinyusdz::Stage> _stage;
-	String _loaded_path = "";
+	godot::String _loaded_path = "";
 
 protected:
 	static void _bind_methods();
 
 public:
-	static tinyusdz::Stage *load_stage(const String &path);
-	static Ref<UsdStage> create(std::shared_ptr<tinyusdz::Stage> stage);
+	static tinyusdz::Stage *load_stage(const godot::String &path);
+	static godot::Ref<UsdStage> create(std::shared_ptr<tinyusdz::Stage> stage);
 
-	bool load(const String &path);
+	bool load(const godot::String &path);
 	bool is_valid() const;
 
-	Ref<UsdPrim> get_prim_at_path(Ref<UsdPath> path) const;
+	godot::Ref<UsdPrim> get_prim_at_path(godot::Ref<UsdPath> path) const;
 
-	TypedArray<UsdPrim> get_root_prims() const;
+	godot::TypedArray<UsdPrim> get_root_prims() const;
 
-	void set_loaded_path(const String &path) { _loaded_path = path; }
-	String get_loaded_path() const { return _loaded_path; }
+	void set_loaded_path(const godot::String &path) { _loaded_path = path; }
+	godot::String get_loaded_path() const { return _loaded_path; }
 
-	Ref<UsdLoadedMaterials> extract_materials() const;
+	godot::Ref<UsdLoadedMaterials> extract_materials() const;
 
-	Vector3::Axis get_up_axis() const;
+	godot::Vector3::Axis get_up_axis() const;
 
 	UsdStage();
 };

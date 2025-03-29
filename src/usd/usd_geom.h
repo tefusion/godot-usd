@@ -16,10 +16,8 @@
 #include "usd/usd_prim_value.h"
 #include "usd/usd_skel.h"
 
-using namespace godot;
-
-class UsdGeomPrimvar : public RefCounted {
-	GDCLASS(UsdGeomPrimvar, RefCounted);
+class UsdGeomPrimvar : public godot::RefCounted {
+	GDCLASS(UsdGeomPrimvar, godot::RefCounted);
 
 public:
 	enum Interpolation {
@@ -34,11 +32,11 @@ public:
 	static Interpolation interpolation_from_internal(tinyusdz::Interpolation interpolation);
 	static tinyusdz::Interpolation interpolation_to_internal(Interpolation interpolation);
 
-	String get_name() const;
-	void set_name(const String &name);
+	godot::String get_name() const;
+	void set_name(const godot::String &name);
 
-	Array get_values() const;
-	void set_values(const Array &values);
+	godot::Array get_values() const;
+	void set_values(const godot::Array &values);
 
 	Interpolation get_interpolation() const;
 	void set_interpolation(Interpolation interpolation);
@@ -46,22 +44,22 @@ public:
 	int get_element_size() const;
 	void set_element_size(int element_size);
 
-	PackedInt32Array get_indices() const;
-	void set_indices(const PackedInt32Array &indices);
+	godot::PackedInt32Array get_indices() const;
+	void set_indices(const godot::PackedInt32Array &indices);
 	/// Returns false if _indices is empty
 	bool has_indices() const;
 
-	String _to_string() const;
+	godot::String _to_string() const;
 
 protected:
 	static void _bind_methods();
 
 private:
-	String _name;
-	Array _values;
+	godot::String _name;
+	godot::Array _values;
 	Interpolation _interpolation = INVALID;
 	int _element_size = 1;
-	PackedInt32Array _indices;
+	godot::PackedInt32Array _indices;
 };
 
 VARIANT_ENUM_CAST(UsdGeomPrimvar::Interpolation);
@@ -74,10 +72,10 @@ protected:
 
 public:
 	virtual UsdPrimType::Type get_type() const override;
-	String _to_string() const;
+	godot::String _to_string() const;
 
-	Transform3D get_transform() const;
-	String get_name() const;
+	godot::Transform3D get_transform() const;
+	godot::String get_name() const;
 };
 
 /// For now just handling the materialBind subset family to avoid having to create a generic class
@@ -93,59 +91,59 @@ public:
 	static ElementType element_type_from_internal(tinyusdz::GeomSubset::ElementType type);
 	static tinyusdz::GeomSubset::ElementType element_type_to_internal(ElementType type);
 
-	String get_name() const;
-	void set_name(const String &name);
+	godot::String get_name() const;
+	void set_name(const godot::String &name);
 
-	Ref<UsdPath> get_bound_material() const;
-	void set_bound_material(Ref<UsdPath> path);
+	godot::Ref<UsdPath> get_bound_material() const;
+	void set_bound_material(godot::Ref<UsdPath> path);
 
 	/// For Material subsets this should always be FACE
 	ElementType get_element_type() const;
 	void set_element_type(ElementType type);
 
-	PackedInt32Array get_indices() const;
-	void set_indices(const PackedInt32Array &indices);
+	godot::PackedInt32Array get_indices() const;
+	void set_indices(const godot::PackedInt32Array &indices);
 
-	String _to_string() const;
+	godot::String _to_string() const;
 
 protected:
 	static void _bind_methods();
 
 private:
-	String _name;
-	Ref<UsdPath> _bound_material_path;
+	godot::String _name;
+	godot::Ref<UsdPath> _bound_material_path;
 	ElementType _element_type = FACE;
-	PackedInt32Array _indices;
+	godot::PackedInt32Array _indices;
 };
 
 VARIANT_ENUM_CAST(UsdPrimValueGeomMaterialSubset::ElementType);
 
-class UsdGeomMeshMaterialMap : public RefCounted {
-	GDCLASS(UsdGeomMeshMaterialMap, RefCounted);
+class UsdGeomMeshMaterialMap : public godot::RefCounted {
+	GDCLASS(UsdGeomMeshMaterialMap, godot::RefCounted);
 
 private:
 	// ElementTypes are always FACE
-	PackedInt32Array _face_material_indices;
-	TypedArray<UsdPath> _materials;
-	PackedStringArray _surface_names;
+	godot::PackedInt32Array _face_material_indices;
+	godot::TypedArray<UsdPath> _materials;
+	godot::PackedStringArray _surface_names;
 
 protected:
 	static void _bind_methods();
 
 public:
-	PackedInt32Array get_face_material_indices() const;
-	void set_face_material_indices(const PackedInt32Array &indices);
+	godot::PackedInt32Array get_face_material_indices() const;
+	void set_face_material_indices(const godot::PackedInt32Array &indices);
 
 	/// Returns false if _face_material_indices is empty. This is done if 1 or no materials are bound
 	bool is_mapped() const;
 
-	TypedArray<UsdPath> get_materials() const;
-	void set_materials(const TypedArray<UsdPath> &materials);
+	godot::TypedArray<UsdPath> get_materials() const;
+	void set_materials(const godot::TypedArray<UsdPath> &materials);
 
-	PackedStringArray get_surface_names() const;
-	void set_surface_names(const PackedStringArray &names);
+	godot::PackedStringArray get_surface_names() const;
+	void set_surface_names(const godot::PackedStringArray &names);
 
-	String _to_string() const;
+	godot::String _to_string() const;
 };
 
 class UsdPrimValueGeomMesh : public UsdPrimValue {
@@ -165,36 +163,36 @@ public:
 		PRIMVAR_INVALID,
 	};
 
-	static PrimVarType primvar_type_from_string(const String &name);
-	static PackedStringArray primvar_type_to_string(const PrimVarType type);
+	static PrimVarType primvar_type_from_string(const godot::String &name);
+	static godot::PackedStringArray primvar_type_to_string(const PrimVarType type);
 
 	/// Returns used primvar name. If empty, the primvar is not present
-	String get_primvar_name(const PrimVarType type) const;
+	godot::String get_primvar_name(const PrimVarType type) const;
 	bool has_primvar(const PrimVarType type) const;
-	Ref<UsdGeomPrimvar> get_primvar(const PrimVarType type) const;
-	Array get_primvars() const;
+	godot::Ref<UsdGeomPrimvar> get_primvar(const PrimVarType type) const;
+	godot::Array get_primvars() const;
 
 	bool has_geom_bind_transform() const;
-	Transform3D get_geom_bind_transform() const;
+	godot::Transform3D get_geom_bind_transform() const;
 
 	virtual UsdPrimType::Type get_type() const override;
 
-	String get_name() const;
-	PackedVector3Array get_points() const;
-	PackedVector3Array get_normals() const;
+	godot::String get_name() const;
+	godot::PackedVector3Array get_points() const;
+	godot::PackedVector3Array get_normals() const;
 	size_t get_face_count() const;
-	PackedInt32Array get_face_vertex_counts() const;
-	PackedInt32Array get_face_vertex_indices() const;
+	godot::PackedInt32Array get_face_vertex_counts() const;
+	godot::PackedInt32Array get_face_vertex_indices() const;
 
-	Ref<UsdPath> get_directly_bound_material() const;
-	Vector<Ref<UsdPrimValueGeomMaterialSubset>> get_subset_materials() const;
-	TypedArray<UsdPrimValueGeomMaterialSubset> get_subset_materials_godot() const;
-	Ref<UsdGeomMeshMaterialMap> get_material_map() const;
+	godot::Ref<UsdPath> get_directly_bound_material() const;
+	godot::Vector<godot::Ref<UsdPrimValueGeomMaterialSubset>> get_subset_materials() const;
+	godot::TypedArray<UsdPrimValueGeomMaterialSubset> get_subset_materials_godot() const;
+	godot::Ref<UsdGeomMeshMaterialMap> get_material_map() const;
 
 	bool has_skeleton() const;
-	Ref<UsdPrimValueSkeleton> get_skeleton() const;
+	godot::Ref<UsdPrimValueSkeleton> get_skeleton() const;
 
-	String _to_string() const;
+	godot::String _to_string() const;
 };
 
 VARIANT_ENUM_CAST(UsdPrimValueGeomMesh::PrimVarType);

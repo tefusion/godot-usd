@@ -1,5 +1,7 @@
 #include "usd_common.h"
 
+using namespace godot;
+
 void UsdPath::_bind_methods() {
 	ClassDB::bind_static_method("UsdPath", D_METHOD("from_string", "path"), &UsdPath::from_string);
 	ClassDB::bind_method(D_METHOD("full_path"), &UsdPath::full_path);

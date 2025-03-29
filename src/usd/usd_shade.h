@@ -9,43 +9,41 @@
 
 #include "stage.hh"
 
-using namespace godot;
-
-class UsdLoadedMaterials : public RefCounted {
-	GDCLASS(UsdLoadedMaterials, RefCounted);
+class UsdLoadedMaterials : public godot::RefCounted {
+	GDCLASS(UsdLoadedMaterials, godot::RefCounted);
 
 private:
 	/// String -> StandardMaterial3D
-	TypedArray<godot::Texture2D> _textures;
-	PackedStringArray _image_paths;
-	TypedArray<godot::Image> _images;
-	HashMap<String, Ref<StandardMaterial3D>> _material_map;
+	godot::TypedArray<godot::Texture2D> _textures;
+	godot::PackedStringArray _image_paths;
+	godot::TypedArray<godot::Image> _images;
+	godot::HashMap<godot::String, godot::Ref<godot::StandardMaterial3D>> _material_map;
 
 protected:
 	static void _bind_methods();
 
 public:
-	static Ref<UsdLoadedMaterials> create(const Vector<String> &material_paths,
-			const Vector<Ref<StandardMaterial3D>> &materials,
-			const Vector<Ref<godot::Texture2D>> &textures,
-			const Vector<String> &image_paths,
-			const Vector<Ref<godot::Image>> &images);
-	PackedStringArray get_material_paths() const;
-	Ref<StandardMaterial3D> get_material(const String &abs_path) const;
-	Ref<StandardMaterial3D> get_material_with_path(const Ref<UsdPath> &path) const;
-	bool has_material(const String &abs_path) const;
-	void set_materials(const PackedStringArray &material_paths, const TypedArray<StandardMaterial3D> &materials);
+	static godot::Ref<UsdLoadedMaterials> create(const godot::Vector<godot::String> &material_paths,
+			const godot::Vector<godot::Ref<godot::StandardMaterial3D>> &materials,
+			const godot::Vector<godot::Ref<godot::Texture2D>> &textures,
+			const godot::Vector<godot::String> &image_paths,
+			const godot::Vector<godot::Ref<godot::Image>> &images);
+	godot::PackedStringArray get_material_paths() const;
+	godot::Ref<godot::StandardMaterial3D> get_material(const godot::String &abs_path) const;
+	godot::Ref<godot::StandardMaterial3D> get_material_with_path(const godot::Ref<UsdPath> &path) const;
+	bool has_material(const godot::String &abs_path) const;
+	void set_materials(const godot::PackedStringArray &material_paths, const godot::TypedArray<godot::StandardMaterial3D> &materials);
 
-	void set_textures(const TypedArray<godot::Texture2D> &textures);
-	TypedArray<godot::Texture2D> get_textures() const;
+	void set_textures(const godot::TypedArray<godot::Texture2D> &textures);
+	godot::TypedArray<godot::Texture2D> get_textures() const;
 
-	void set_image_paths(const PackedStringArray &paths);
-	PackedStringArray get_image_paths() const;
+	void set_image_paths(const godot::PackedStringArray &paths);
+	godot::PackedStringArray get_image_paths() const;
 
-	void set_images(const TypedArray<godot::Image> &images);
-	TypedArray<godot::Image> get_images() const;
+	void set_images(const godot::TypedArray<godot::Image> &images);
+	godot::TypedArray<godot::Image> get_images() const;
 
-	String _to_string() const;
+	godot::String _to_string() const;
 };
 
-Ref<UsdLoadedMaterials> extract_materials_impl(const tinyusdz::Stage &stage, const String &p_search_path);
+godot::Ref<UsdLoadedMaterials> extract_materials_impl(const tinyusdz::Stage &stage, const godot::String &p_search_path);

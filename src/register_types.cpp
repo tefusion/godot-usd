@@ -15,8 +15,7 @@
 #include "usd/usd_skel.h"
 #include "usd/usd_stage.h"
 
-using namespace godot;
-
+namespace godot {
 void gdextension_initialize(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
 		ClassDB::register_class<UsdPrim>();
@@ -52,3 +51,4 @@ GDExtensionBool GDE_EXPORT gdextension_init(GDExtensionInterfaceGetProcAddress p
 	return init_obj.init();
 }
 }
+} //namespace godot

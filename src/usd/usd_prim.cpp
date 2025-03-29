@@ -2,6 +2,8 @@
 #include "usd/usd_prim_type.h"
 #include "value-types.hh"
 
+using namespace godot;
+
 UsdPrimType::Type UsdPrim::get_prim_type(const tinyusdz::Prim *prim) {
 	switch (prim->type_id()) {
 		case tinyusdz::value::TYPE_ID_GEOM_XFORM:

@@ -1,12 +1,12 @@
-#include "godot_cpp/classes/array_mesh.hpp"
+#include "godot_cpp/classes/importer_mesh.hpp"
 #include "godot_cpp/classes/object.hpp"
+#include "godot_cpp/classes/packed_scene.hpp"
 #include "godot_cpp/classes/skeleton3d.hpp"
 #include "usd/usd_geom.h"
 #include "usd/usd_stage.h"
 
-using namespace godot;
-class UsdGodotSceneConverter : public Object {
-	GDCLASS(UsdGodotSceneConverter, Object);
+class UsdGodotSceneConverter : public godot::Object {
+	GDCLASS(UsdGodotSceneConverter, godot::Object);
 
 protected:
 	static void _bind_methods();
@@ -15,8 +15,8 @@ public:
 	UsdGodotSceneConverter();
 	~UsdGodotSceneConverter();
 
-	Ref<ArrayMesh> convert_mesh(const Ref<UsdPrimValueGeomMesh> &geom_mesh, const Ref<UsdLoadedMaterials> &materials, const Vector3::Axis up_axis);
+	godot::Ref<godot::ImporterMesh> convert_mesh(const godot::Ref<UsdPrimValueGeomMesh> &geom_mesh, const godot::Ref<UsdLoadedMaterials> &materials, const godot::Vector3::Axis up_axis);
+	godot::Skeleton3D *convert_skeleton(const godot::Ref<UsdPrimValueSkeleton> &skeleton, const godot::Vector3::Axis up_axis);
 
-	//need to apply Node3D transform from SkelRoot outside
-	Skeleton3D *convert_skeleton(const Ref<UsdPrimValueSkeleton> &skeleton);
+	godot::Ref<godot::PackedScene> convert_scene(const godot::Ref<UsdStage> &p_stage);
 };

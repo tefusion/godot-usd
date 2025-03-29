@@ -8,11 +8,9 @@
 #include "prim-types.hh"
 #include "stage.hh"
 
-using namespace godot;
-
 // Small wrapper classes with methods for pretty printing and getting values
-class UsdPrimValue : public RefCounted {
-	GDCLASS(UsdPrimValue, RefCounted);
+class UsdPrimValue : public godot::RefCounted {
+	GDCLASS(UsdPrimValue, godot::RefCounted);
 
 protected:
 	const tinyusdz::Prim *_prim = nullptr;
@@ -21,6 +19,6 @@ protected:
 	static void _bind_methods();
 
 public:
-	static Ref<UsdPrimValue> create(const tinyusdz::Prim *p_prim, std::shared_ptr<tinyusdz::Stage> p_stage);
+	static godot::Ref<UsdPrimValue> create(const tinyusdz::Prim *p_prim, std::shared_ptr<tinyusdz::Stage> p_stage);
 	virtual UsdPrimType::Type get_type() const;
 };

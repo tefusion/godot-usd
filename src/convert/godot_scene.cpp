@@ -1,14 +1,21 @@
 #include "godot_scene.h"
 #include "godot_cpp/classes/array_mesh.hpp"
+#include "godot_cpp/classes/importer_mesh.hpp"
 #include "godot_cpp/classes/skeleton3d.hpp"
+#include "godot_cpp/classes/standard_material3d.hpp"
+#include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/core/memory.hpp"
 #include "godot_cpp/variant/array.hpp"
 #include "godot_cpp/variant/packed_string_array.hpp"
 #include "utils/geom_utils.h"
 
+using namespace godot;
+
+Vector3::Axis DEFAULT_UP_AXIS = Vector3::Axis::AXIS_Y;
+
 void UsdGodotSceneConverter::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("convert_mesh", "geom_mesh", "materials", "up_axis"), &UsdGodotSceneConverter::convert_mesh);
-	ClassDB::bind_method(D_METHOD("convert_skeleton", "skeleton"), &UsdGodotSceneConverter::convert_skeleton);
+	ClassDB::bind_method(D_METHOD("convert_mesh", "geom_mesh", "materials", "up_axis"), &UsdGodotSceneConverter::convert_mesh, DEFVAL(DEFAULT_UP_AXIS));
+	ClassDB::bind_method(D_METHOD("convert_skeleton", "skeleton", "up_axis"), &UsdGodotSceneConverter::convert_skeleton, DEFVAL(DEFAULT_UP_AXIS));
 }
 
 UsdGodotSceneConverter::UsdGodotSceneConverter() {
@@ -17,12 +24,12 @@ UsdGodotSceneConverter::UsdGodotSceneConverter() {
 UsdGodotSceneConverter::~UsdGodotSceneConverter() {
 }
 
-Ref<ArrayMesh> UsdGodotSceneConverter::convert_mesh(const Ref<UsdPrimValueGeomMesh> &geom_mesh, const Ref<UsdLoadedMaterials> &materials, const Vector3::Axis up_axis = Vector3::AXIS_Y) {
+Ref<ImporterMesh> UsdGodotSceneConverter::convert_mesh(const Ref<UsdPrimValueGeomMesh> &geom_mesh, const Ref<UsdLoadedMaterials> &materials, const Vector3::Axis up_axis) {
 	ERR_FAIL_COND_V_MSG(geom_mesh.is_null(), nullptr, "GeomMesh is null");
 	ERR_FAIL_COND_V_MSG(materials.is_null(), nullptr, "Materials is null");
 	ERR_FAIL_COND_V_MSG(up_axis == Vector3::AXIS_X, nullptr, "Up axis must be Y or Z");
 
-	Ref<ArrayMesh> mesh;
+	Ref<ImporterMesh> mesh;
 	mesh.instantiate();
 
 	PackedVector3Array points = apply_up_axis(geom_mesh->get_points(), up_axis);
@@ -190,35 +197,28 @@ Ref<ArrayMesh> UsdGodotSceneConverter::convert_mesh(const Ref<UsdPrimValueGeomMe
 		}
 
 		int surface_idx = mesh->get_surface_count();
-		mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, surface_arrays);
-
-		if (material.is_valid()) {
-			mesh->surface_set_material(surface_idx, material);
-			if (material_idx < surface_names.size()) {
-				mesh->surface_set_name(surface_idx, surface_names[material_idx]);
-			}
-		}
+		String surface_name = surface_names.size() > material_idx ? surface_names[material_idx] : String();
+		Ref<StandardMaterial3D> godot_material = material.is_valid() ? material : nullptr;
+		mesh->add_surface(Mesh::PRIMITIVE_TRIANGLES, surface_arrays, {}, {}, godot_material, surface_name);
 	}
 
 	return mesh;
 }
 
-Skeleton3D *UsdGodotSceneConverter::convert_skeleton(const Ref<UsdPrimValueSkeleton> &skeleton) {
+Skeleton3D *UsdGodotSceneConverter::convert_skeleton(const Ref<UsdPrimValueSkeleton> &skeleton, const Vector3::Axis up_axis) {
 	ERR_FAIL_COND_V_MSG(skeleton.is_null(), nullptr, "Skeleton is null");
 
 	Skeleton3D *godot_skeleton = memnew(Skeleton3D);
 
 	// Can infer hierarchy from naming e.g. "Bone/Bone1" means Bone1 is child of Bone
 	PackedStringArray joints = skeleton->get_joints();
-	TypedArray<Transform3D> rest_transforms = skeleton->get_rest_transforms();
-	Array bone_lengths = skeleton->get_bone_lengths();
+	Vector<Transform3D> rest_transforms = skeleton->get_rest_transforms();
 
 	HashMap<String, int> bone_name_to_idx;
 
 	for (int bone_idx = 0; bone_idx < joints.size(); bone_idx++) {
 		String joint_name = joints[bone_idx];
-		Transform3D rest_transform = rest_transforms[bone_idx];
-		float bone_length = bone_lengths[bone_idx];
+		Transform3D rest_transform = apply_up_axis(rest_transforms[bone_idx], up_axis);
 
 		PackedStringArray path = joint_name.split("/");
 		String bone_name = path[path.size() - 1];

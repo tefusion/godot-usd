@@ -12,8 +12,6 @@
 #include "usd/usd_prim_type.h"
 #include "usd/usd_prim_value.h"
 
-using namespace godot;
-
 class UsdPrimValueSkeletonRoot : public UsdPrimValue {
 	GDCLASS(UsdPrimValueSkeletonRoot, UsdPrimValue);
 
@@ -32,10 +30,12 @@ protected:
 
 public:
 	virtual UsdPrimType::Type get_type() const override;
-	String _to_string() const;
+	godot::String _to_string() const;
 
-	TypedArray<Transform3D> get_bind_transforms() const;
-	PackedStringArray get_joints() const;
-	Array get_bone_lengths() const;
-	TypedArray<Transform3D> get_rest_transforms() const;
+	godot::Vector<godot::Transform3D> get_bind_transforms() const;
+	godot::TypedArray<godot::Transform3D> get_bind_transforms_godot() const;
+
+	godot::PackedStringArray get_joints() const;
+	godot::Vector<godot::Transform3D> get_rest_transforms() const;
+	godot::TypedArray<godot::Transform3D> get_rest_transforms_godot() const;
 };

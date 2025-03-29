@@ -3,10 +3,8 @@
 #include "godot_cpp/classes/object.hpp"
 #include <godot_cpp/core/class_db.hpp>
 
-using namespace godot;
-
-class UsdPrimType : public Object {
-	GDCLASS(UsdPrimType, Object);
+class UsdPrimType : public godot::Object {
+	GDCLASS(UsdPrimType, godot::Object);
 
 public:
 	enum Type {

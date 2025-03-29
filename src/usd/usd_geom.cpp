@@ -16,6 +16,8 @@
 #include "utils/type_utils.h"
 #include "value-types.hh"
 
+using namespace godot;
+
 UsdGeomPrimvar::Interpolation UsdGeomPrimvar::interpolation_from_internal(tinyusdz::Interpolation interpolation) {
 	switch (interpolation) {
 		case tinyusdz::Interpolation::Constant:

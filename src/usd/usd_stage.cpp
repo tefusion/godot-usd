@@ -6,6 +6,8 @@
 #include "stream-reader.hh"
 #include "usda-reader.hh"
 
+using namespace godot;
+
 tinyusdz::Stage *UsdStage::load_stage(const String &path) {
 	String global_path = ProjectSettings::get_singleton()->globalize_path(path);
 	std::string file_path = global_path.utf8().get_data();

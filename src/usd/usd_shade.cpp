@@ -15,6 +15,8 @@
 
 #include "utils/godot_utils.h"
 
+using namespace godot;
+
 using MaterialMap = std::map<std::string, const tinyusdz::Material *>;
 
 // Macro for applying texture to a material

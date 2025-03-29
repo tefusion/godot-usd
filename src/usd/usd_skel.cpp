@@ -3,14 +3,17 @@
 #include "godot_cpp/variant/transform3d.hpp"
 #include "godot_cpp/variant/typed_array.hpp"
 #include "usdSkel.hh"
+#include "utils/godot_utils.h"
 #include "utils/type_utils.h"
+
+using namespace godot;
 
 UsdPrimType::Type UsdPrimValueSkeleton::get_type() const {
 	return UsdPrimType::USD_PRIM_TYPE_SKELETON;
 }
 
-TypedArray<Transform3D> UsdPrimValueSkeleton::get_bind_transforms() const {
-	TypedArray<Transform3D> godot_transforms;
+Vector<Transform3D> UsdPrimValueSkeleton::get_bind_transforms() const {
+	Vector<Transform3D> godot_transforms;
 
 	const tinyusdz::Skeleton *skeleton = get_typed_prim<tinyusdz::Skeleton>(_prim);
 	if (!skeleton) {
@@ -59,8 +62,8 @@ PackedStringArray UsdPrimValueSkeleton::get_joints() const {
 	return godot_joints;
 }
 
-TypedArray<Transform3D> UsdPrimValueSkeleton::get_rest_transforms() const {
-	TypedArray<Transform3D> godot_transforms;
+Vector<Transform3D> UsdPrimValueSkeleton::get_rest_transforms() const {
+	Vector<Transform3D> godot_transforms;
 
 	const tinyusdz::Skeleton *skeleton = get_typed_prim<tinyusdz::Skeleton>(_prim);
 	if (!skeleton) {
@@ -84,21 +87,12 @@ TypedArray<Transform3D> UsdPrimValueSkeleton::get_rest_transforms() const {
 	return godot_transforms;
 }
 
-Array UsdPrimValueSkeleton::get_bone_lengths() const {
-	Array bone_lengths;
+godot::TypedArray<Transform3D> UsdPrimValueSkeleton::get_bind_transforms_godot() const {
+	return vector_to_typed_array(get_bind_transforms());
+}
 
-	TypedArray<Transform3D> rest_transforms = get_rest_transforms();
-	if (rest_transforms.size() == 0) {
-		return bone_lengths;
-	}
-
-	bone_lengths.resize(rest_transforms.size());
-	for (int i = 0; i < rest_transforms.size(); i++) {
-		Transform3D transform = rest_transforms[i];
-		bone_lengths[i] = transform.origin.length();
-	}
-
-	return bone_lengths;
+godot::TypedArray<Transform3D> UsdPrimValueSkeleton::get_rest_transforms_godot() const {
+	return vector_to_typed_array(get_rest_transforms());
 }
 
 String UsdPrimValueSkeleton::_to_string() const {
@@ -113,10 +107,10 @@ String UsdPrimValueSkeleton::_to_string() const {
 	PackedStringArray joints = get_joints();
 	result += "joints: " + String::num_int64(joints.size()) + ", ";
 
-	TypedArray<Transform3D> bind_transforms = get_bind_transforms();
+	Vector<Transform3D> bind_transforms = get_bind_transforms();
 	result += "bind_transforms: " + String::num_int64(bind_transforms.size()) + ", ";
 
-	TypedArray<Transform3D> rest_transforms = get_rest_transforms();
+	Vector<Transform3D> rest_transforms = get_rest_transforms();
 	result += "rest_transforms: " + String::num_int64(rest_transforms.size());
 
 	result += ")";
@@ -124,15 +118,13 @@ String UsdPrimValueSkeleton::_to_string() const {
 }
 
 void UsdPrimValueSkeleton::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("get_bind_transforms"), &UsdPrimValueSkeleton::get_bind_transforms);
+	ClassDB::bind_method(D_METHOD("get_bind_transforms"), &UsdPrimValueSkeleton::get_bind_transforms_godot);
 	ClassDB::bind_method(D_METHOD("get_joints"), &UsdPrimValueSkeleton::get_joints);
-	ClassDB::bind_method(D_METHOD("get_bone_lengths"), &UsdPrimValueSkeleton::get_bone_lengths);
-	ClassDB::bind_method(D_METHOD("get_rest_transforms"), &UsdPrimValueSkeleton::get_rest_transforms);
+	ClassDB::bind_method(D_METHOD("get_rest_transforms"), &UsdPrimValueSkeleton::get_rest_transforms_godot);
 	ClassDB::bind_method(D_METHOD("_to_string"), &UsdPrimValueSkeleton::_to_string);
 
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "bind_transforms", PROPERTY_HINT_ARRAY_TYPE, "Transform3D"), "", "get_bind_transforms");
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "joints"), "", "get_joints");
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "bone_lengths"), "", "get_bone_lengths");
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "rest_transforms", PROPERTY_HINT_ARRAY_TYPE, "Transform3D"), "", "get_rest_transforms");
 }
 

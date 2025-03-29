@@ -261,9 +261,8 @@ godot::Variant single_value_to_variant(const tinyusdz::value::Value &usd_value, 
 			break;
 		}
 
-		// Handle unsupported types
 		default:
-			result = godot::Variant(); // Return NIL for unsupported types
+			result = godot::Variant();
 			break;
 	}
 
@@ -531,19 +530,7 @@ godot::Variant array_value_to_variant(const tinyusdz::value::Value &usd_value, u
 			if (value.has_value()) {
 				godot::Array array;
 				for (const auto &m : value.value()) {
-					godot::Transform3D transform;
-
-					// Set basis (3x3 rotation/scale part)
-					for (int i = 0; i < 3; i++) {
-						for (int j = 0; j < 3; j++) {
-							transform.basis[i][j] = m.m[i][j];
-						}
-					}
-
-					// Set origin (translation part)
-					transform.origin = godot::Vector3(m.m[3][0], m.m[3][1], m.m[3][2]);
-
-					array.push_back(godot::Variant(transform));
+					array.push_back(to_variant(m));
 				}
 				result = array;
 			}
@@ -554,19 +541,7 @@ godot::Variant array_value_to_variant(const tinyusdz::value::Value &usd_value, u
 			if (value.has_value()) {
 				godot::Array array;
 				for (const auto &m : value.value()) {
-					godot::Transform3D transform;
-
-					// Set basis (3x3 rotation/scale part)
-					for (int i = 0; i < 3; i++) {
-						for (int j = 0; j < 3; j++) {
-							transform.basis[i][j] = m.m[i][j];
-						}
-					}
-
-					// Set origin (translation part)
-					transform.origin = godot::Vector3(m.m[3][0], m.m[3][1], m.m[3][2]);
-
-					array.push_back(godot::Variant(transform));
+					array.push_back(to_variant(m));
 				}
 				result = array;
 			}
@@ -597,9 +572,8 @@ godot::Variant array_value_to_variant(const tinyusdz::value::Value &usd_value, u
 			break;
 		}
 
-		// Handle unsupported types
 		default:
-			result = godot::Variant(); // Return NIL for unsupported types
+			result = godot::Variant();
 			break;
 	}
 

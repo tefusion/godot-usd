@@ -2,6 +2,8 @@
 #include "usd_geom.h"
 #include "usd_prim.h"
 
+using namespace godot;
+
 //godot doesn't work well with constructors with arguments so we just make an empty ref and set values in the create method
 template <typename T>
 static Ref<T> create_typed() {
