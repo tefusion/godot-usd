@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/Godot-v4.4-informational) ![License](https://img.shields.io/github/license/tefusion/godot-usd)
+![Version](https://img.shields.io/badge/Godot-v4.4-informational) ![License](https://img.shields.io/badge/License-Apache%202.0-red.svg)
 
 # Godot USD
 
