@@ -1,0 +1,104 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    doc = "Blender v4.3.2"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "root" (
+    customData = {
+        dictionary Blender = {
+            bool generated = 1
+        }
+    }
+)
+{
+    def Xform "NotACube"
+    {
+        custom string userProperties:blender:object_name = "NotACube"
+
+        def Mesh "Cube_001" (
+            active = true
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            uniform bool doubleSided = 1
+            float3[] extent = [(-1, -1, -1), (1, 1.0127587, 2.449858)]
+            int[] faceVertexCounts = [4, 4, 4, 4, 4, 4, 4]
+            int[] faceVertexIndices = [0, 1, 3, 2, 2, 3, 7, 6, 6, 7, 5, 4, 4, 5, 1, 0, 2, 6, 4, 0, 7, 3, 1, 5, 8, 7, 5, 9]
+            rel material:binding = </root/_materials/Material_001>
+            normal3f[] normals = [(-1, 0, 0), (-1, 0, 0), (-1, 0, 0), (-1, 0, 0), (-0.0031921833, 0.99998987, -0.0031921638), (-0.0031921833, 0.99998987, -0.0031921638), (-0.0031921833, 0.99998987, -0.0031921638), (-0.0031921833, 0.99998987, -0.0031921638), (0.9999994, 0.00079093373, 0.0007909189), (0.9999994, 0.00079093373, 0.0007909189), (0.9999994, 0.00079093373, 0.0007909189), (0.9999994, 0.00079093373, 0.0007909189), (0, -1, 0), (0, -1, 0), (0, -1, 0), (0, -1, 0), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (-0.90404594, 0.05943935, -0.42328218), (-0.90404594, 0.05943935, -0.42328218), (-0.90404594, 0.05943935, -0.42328218), (-0.90404594, 0.05943935, -0.42328218)] (
+                interpolation = "faceVarying"
+            )
+            point3f[] points = [(-1, -1, -1), (-1, -1, 1), (-1, 1, -1), (-1, 1, 1), (1, -1, -1), (1, -1, 1), (1, 1, -1), (0.99682623, 1.0127587, 1), (0.47225153, 1.0109706, 2.4095554), (0.19936812, -0.79143023, 2.449858)]
+            bool[] primvars:sharp_face = [1, 1, 1, 1, 1, 1, 1] (
+                interpolation = "uniform"
+            )
+            texCoord2f[] primvars:st = [(0.375, 0), (0.625, 0), (0.625, 0.25), (0.375, 0.25), (0.375, 0.25), (0.625, 0.25), (0.625, 0.5), (0.375, 0.5), (0.375, 0.5), (0.625, 0.5), (0.625, 0.75), (0.375, 0.75), (0.375, 0.75), (0.625, 0.75), (0.625, 1), (0.375, 1), (0.125, 0.5), (0.375, 0.5), (0.375, 0.75), (0.125, 0.75), (0.625, 0.5), (0.875, 0.5), (0.875, 0.75), (0.625, 0.75), (0, 0), (0, 0), (0, 0), (0, 0)] (
+                interpolation = "faceVarying"
+            )
+            uniform token subdivisionScheme = "none"
+            custom string userProperties:blender:data_name = "Cube.001"
+        }
+    }
+
+    def Scope "_materials"
+    {
+        def Material "Material_001"
+        {
+            token outputs:surface.connect = </root/_materials/Material_001/Principled_BSDF.outputs:surface>
+            custom string userProperties:blender:data_name = "Material.001"
+
+            def Shader "Principled_BSDF"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                float inputs:clearcoat = 0
+                float inputs:clearcoatRoughness = 0.03
+                color3f inputs:diffuseColor.connect = </root/_materials/Material_001/Image_Texture.outputs:rgb>
+                float inputs:ior = 1.5
+                float inputs:metallic = 0
+                float inputs:opacity = 1
+                float inputs:roughness = 0.5
+                float inputs:specular = 0.5
+                token outputs:surface
+            }
+
+            def Shader "Image_Texture"
+            {
+                uniform token info:id = "UsdUVTexture"
+                asset inputs:file = @./textures/icon_color.png@
+                token inputs:sourceColorSpace = "sRGB"
+                float2 inputs:st.connect = </root/_materials/Material_001/Mapping.outputs:result>
+                token inputs:wrapS = "repeat"
+                token inputs:wrapT = "repeat"
+                float3 outputs:rgb
+            }
+
+            def Shader "Mapping"
+            {
+                uniform token info:id = "UsdTransform2d"
+                float2 inputs:in.connect = </root/_materials/Material_001/uvmap.outputs:result>
+                float inputs:rotation = 0
+                float2 inputs:scale = (4, 4)
+                float2 inputs:translation = (2.4999998, -0.099999994)
+                float2 outputs:result
+            }
+
+            def Shader "uvmap"
+            {
+                uniform token info:id = "UsdPrimvarReader_float2"
+                string inputs:varname = "st"
+                float2 outputs:result
+            }
+        }
+    }
+
+    def DomeLight "env_light"
+    {
+        float inputs:intensity = 1
+        asset inputs:texture:file = @./textures/color_121212.hdr@
+        float3 xformOp:rotateXYZ = (90, -0, 90)
+        uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
+    }
+}
