@@ -1,9 +1,12 @@
-#include "godot_cpp/classes/importer_mesh.hpp"
-#include "godot_cpp/classes/importer_mesh_instance3d.hpp"
-#include "godot_cpp/classes/node3d.hpp"
-#include "godot_cpp/classes/packed_scene.hpp"
-#include "godot_cpp/classes/ref_counted.hpp"
-#include "godot_cpp/classes/skeleton3d.hpp"
+#pragma once
+
+#include <godot_cpp/classes/importer_mesh.hpp>
+#include <godot_cpp/classes/importer_mesh_instance3d.hpp>
+#include <godot_cpp/classes/node3d.hpp>
+#include <godot_cpp/classes/packed_scene.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/classes/skeleton3d.hpp>
+
 #include "usd/usd_geom.h"
 #include "usd/usd_prim.h"
 #include "usd/usd_stage.h"

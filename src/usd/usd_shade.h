@@ -1,3 +1,5 @@
+#pragma once
+
 #include <godot_cpp/classes/image.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/standard_material3d.hpp>

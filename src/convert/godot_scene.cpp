@@ -1,24 +1,25 @@
 #include "godot_scene.h"
-#include "godot_cpp/classes/array_mesh.hpp"
-#include "godot_cpp/classes/importer_mesh.hpp"
-#include "godot_cpp/classes/node.hpp"
-#include "godot_cpp/classes/node3d.hpp"
-#include "godot_cpp/classes/packed_scene.hpp"
-#include "godot_cpp/classes/skeleton3d.hpp"
-#include "godot_cpp/classes/standard_material3d.hpp"
-#include "godot_cpp/core/class_db.hpp"
-#include "godot_cpp/core/defs.hpp"
-#include "godot_cpp/core/memory.hpp"
-#include "godot_cpp/variant/array.hpp"
-#include "godot_cpp/variant/packed_string_array.hpp"
-#include "godot_cpp/variant/typed_array.hpp"
+
+#include <godot_cpp/classes/array_mesh.hpp>
+#include <godot_cpp/classes/importer_mesh.hpp>
+#include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/node3d.hpp>
+#include <godot_cpp/classes/packed_scene.hpp>
+#include <godot_cpp/classes/skeleton3d.hpp>
+#include <godot_cpp/classes/standard_material3d.hpp>
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/core/defs.hpp>
+#include <godot_cpp/core/memory.hpp>
+#include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/packed_string_array.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
+
 #include "usd/usd_geom.h"
 #include "usd/usd_prim.h"
 #include "usd/usd_prim_type.h"
 #include "usd/usd_stage.h"
 #include "utils/geom_utils.h"
 #include "utils/godot_utils.h"
-#include <cstdint>
 
 using namespace godot;
 
