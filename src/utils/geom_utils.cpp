@@ -218,5 +218,8 @@ Basis apply_up_axis(const Basis &basis, const Vector3::Axis axis) {
 		return basis;
 	}
 
-	return basis.rotated(Vector3(1, 0, 0), Math_PI / 2.0);
+	return Basis(
+			basis[0],
+			basis[1],
+			-basis[2]);
 }

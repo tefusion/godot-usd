@@ -1,12 +1,15 @@
 #include "register_types.h"
 
 #include <gdextension_interface.h>
+#include <godot_cpp/classes/editor_plugin_registration.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "convert/editor_plugin.h"
 #include "convert/godot_scene.h"
+#include "convert/scene_format_importer.h"
 #include "usd/usd_common.h"
 #include "usd/usd_geom.h"
 #include "usd/usd_prim.h"
@@ -33,10 +36,19 @@ void gdextension_initialize(ModuleInitializationLevel p_level) {
 		ClassDB::register_class<UsdPrimValueSkeleton>();
 		ClassDB::register_class<UsdPrimValueSkeletonRoot>();
 	}
+
+	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
+		ClassDB::register_class<UsdSceneFormatImporter>();
+		ClassDB::register_class<UsdEditorPlugin>();
+		EditorPlugins::add_by_type<UsdEditorPlugin>();
+	}
 }
 
 void gdextension_terminate(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
+	}
+	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
+		EditorPlugins::remove_by_type<UsdEditorPlugin>();
 	}
 }
 

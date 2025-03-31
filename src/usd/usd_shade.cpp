@@ -1,13 +1,16 @@
 #include "usd_shade.h"
-#include "godot_cpp/classes/image.hpp"
-#include "godot_cpp/classes/image_texture.hpp"
-#include "godot_cpp/classes/project_settings.hpp"
-#include "godot_cpp/classes/standard_material3d.hpp"
-#include "godot_cpp/classes/texture2d.hpp"
-#include "godot_cpp/templates/vector.hpp"
-#include "godot_cpp/variant/dictionary.hpp"
-#include "godot_cpp/variant/packed_string_array.hpp"
-#include "godot_cpp/variant/typed_array.hpp"
+
+#include <godot_cpp/classes/image.hpp>
+#include <godot_cpp/classes/image_texture.hpp>
+#include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/standard_material3d.hpp>
+#include <godot_cpp/classes/texture2d.hpp>
+#include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/variant/packed_string_array.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
+
 #include "prim-types.hh"
 #include "tydra/render-data.hh"
 #include "tydra/scene-access.hh"
@@ -155,8 +158,17 @@ Ref<UsdLoadedMaterials> extract_materials_impl(const tinyusdz::Stage &stage, con
 		const tinyusdz::tydra::TextureImage &image = loaded_images[image_id];
 		const std::string &image_file_path = image.asset_identifier;
 		String godot_image_file_path = String(image_file_path.c_str());
-		godot_image_file_path = ProjectSettings::get_singleton()->localize_path(godot_image_file_path);
-		Ref<Image> godot_image = godot::Image::load_from_file(godot_image_file_path);
+
+		//image doesn't contain full path so check both project and custom search path
+		Ref<Image> godot_image = nullptr;
+		if (ResourceLoader::get_singleton()->exists(ProjectSettings::get_singleton()->localize_path(godot_image_file_path))) {
+			godot_image_file_path = ProjectSettings::get_singleton()->localize_path(godot_image_file_path);
+			godot_image = godot::Image::load_from_file(godot_image_file_path);
+		} else if (ResourceLoader::get_singleton()->exists(ProjectSettings::get_singleton()->localize_path(p_search_path.path_join(godot_image_file_path)))) {
+			godot_image_file_path = ProjectSettings::get_singleton()->localize_path(p_search_path.path_join(godot_image_file_path));
+			godot_image = godot::Image::load_from_file(godot_image_file_path);
+		}
+
 		ERR_CONTINUE_MSG(godot_image.is_null(), String("Failed to load image ") + godot_image_file_path);
 		godot_images.push_back(godot_image);
 		godot_image_paths.push_back(godot_image_file_path);

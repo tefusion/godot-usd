@@ -1,13 +1,14 @@
-#include "godot_cpp/classes/image.hpp"
-#include "godot_cpp/classes/ref_counted.hpp"
-#include "godot_cpp/classes/standard_material3d.hpp"
-#include "godot_cpp/classes/texture2d.hpp"
-#include "godot_cpp/templates/hash_map.hpp"
-#include "godot_cpp/variant/packed_string_array.hpp"
-#include "godot_cpp/variant/typed_array.hpp"
-#include "usd/usd_common.h"
+#include <godot_cpp/classes/image.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/classes/standard_material3d.hpp>
+#include <godot_cpp/classes/texture2d.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/variant/packed_string_array.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
 
 #include "stage.hh"
+
+#include "usd/usd_common.h"
 
 class UsdLoadedMaterials : public godot::RefCounted {
 	GDCLASS(UsdLoadedMaterials, godot::RefCounted);

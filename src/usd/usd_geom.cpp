@@ -1,10 +1,11 @@
 #include "usd_geom.h"
-#include "godot_cpp/core/error_macros.hpp"
-#include "godot_cpp/core/object.hpp"
-#include "godot_cpp/variant/packed_int32_array.hpp"
-#include "godot_cpp/variant/packed_string_array.hpp"
-#include "godot_cpp/variant/typed_array.hpp"
-#include "godot_cpp/variant/utility_functions.hpp"
+#include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/core/object.hpp>
+#include <godot_cpp/variant/packed_int32_array.hpp>
+#include <godot_cpp/variant/packed_string_array.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
+
 #include "usd/usd_common.h"
 
 #include "token-type.hh"
@@ -662,6 +663,22 @@ PackedInt32Array UsdPrimValueGeomMesh::get_face_vertex_indices() const {
 	return godot_face_vertex_indices;
 }
 
+bool UsdPrimValueGeomMesh::has_directly_bound_material() const {
+	const tinyusdz::GeomMesh *mesh = get_typed_prim<tinyusdz::GeomMesh>(_prim);
+	if (!mesh) {
+		return false;
+	}
+
+	tinyusdz::Path material_path;
+	const tinyusdz::Material *material;
+	std::string err;
+	const std::string purpose = ""; //->all purposes
+
+	bool success = tinyusdz::tydra::GetBoundMaterial(*_stage, _prim->absolute_path(), purpose, &material_path, &material, &err);
+
+	return success && material_path.is_valid();
+}
+
 Ref<UsdPath> UsdPrimValueGeomMesh::get_directly_bound_material() const {
 	Ref<UsdPath> godot_material_path;
 	godot_material_path.instantiate();
@@ -678,6 +695,9 @@ Ref<UsdPath> UsdPrimValueGeomMesh::get_directly_bound_material() const {
 
 	ERR_FAIL_COND_V_MSG(!success, godot_material_path, String("Failed to get bound material: ") + err.c_str());
 
+	if (!material_path.is_valid()) {
+		return nullptr;
+	}
 	godot_material_path->set_path(material_path);
 	return godot_material_path;
 }
@@ -716,6 +736,9 @@ Vector<Ref<UsdPrimValueGeomMaterialSubset>> UsdPrimValueGeomMesh::get_subset_mat
 
 		auto material_binding = subset->materialBinding;
 		if (material_binding.has_value()) {
+			if (!material_binding->targetPath.is_valid()) {
+				godot_subset->set_bound_material(nullptr);
+			}
 			godot_subset->set_bound_material(UsdPath::create(material_binding->targetPath));
 		} else {
 			godot_subset->set_bound_material(default_material);
@@ -745,7 +768,9 @@ Ref<UsdGeomMeshMaterialMap> UsdPrimValueGeomMesh::get_material_map() const {
 		godot_material_map->set_face_material_indices(PackedInt32Array());
 
 		TypedArray<UsdPath> materials;
-		materials.push_back(get_directly_bound_material());
+		if (has_directly_bound_material()) {
+			materials.push_back(get_directly_bound_material());
+		}
 		godot_material_map->set_materials(materials);
 	} else {
 		PackedInt32Array face_material_indices;

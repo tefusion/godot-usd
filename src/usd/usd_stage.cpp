@@ -2,6 +2,7 @@
 #include <godot_cpp/classes/project_settings.hpp>
 
 #include "composition.hh"
+#include "godot_cpp/variant/utility_functions.hpp"
 #include "io-util.hh"
 #include "stream-reader.hh"
 #include "usda-reader.hh"
@@ -65,9 +66,9 @@ bool UsdStage::load(const String &path) {
 	tinyusdz::Stage *stage = load_stage(path);
 	if (stage) {
 		_stage = std::shared_ptr<tinyusdz::Stage>(stage);
+		_loaded_path = path;
 		return true;
 	}
-	_loaded_path = path;
 	return false;
 }
 

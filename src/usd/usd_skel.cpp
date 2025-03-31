@@ -1,7 +1,8 @@
 #include "usd_skel.h"
-#include "godot_cpp/core/error_macros.hpp"
-#include "godot_cpp/variant/transform3d.hpp"
-#include "godot_cpp/variant/typed_array.hpp"
+#include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/variant/transform3d.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
+
 #include "usdSkel.hh"
 #include "utils/godot_utils.h"
 #include "utils/type_utils.h"

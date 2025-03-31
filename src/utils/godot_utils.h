@@ -17,24 +17,24 @@ godot::TypedArray<T> ref_vector_to_typed_array(const godot::Vector<godot::Ref<T>
 }
 
 template <typename T>
-godot::Vector<godot::Ref<T>> typed_array_to_ref_vector(const godot::TypedArray<T> &array) {
+godot::Vector<godot::Ref<T>> typed_array_to_ref_vector(godot::TypedArray<T> array) {
 	godot::Vector<godot::Ref<T>> vector;
-	vector.resize(array.size());
 
 	for (int i = 0; i < array.size(); i++) {
-		vector[i] = array[i];
+		godot::Ref<T> ref = array[i];
+		vector.push_back(ref);
 	}
 
 	return vector;
 }
 
 template <typename T>
-godot::Vector<T> typed_array_to_vector(const godot::TypedArray<T> &array) {
+godot::Vector<T> typed_array_to_vector(godot::TypedArray<T> array) {
 	godot::Vector<T> vector;
 	vector.resize(array.size());
 
 	for (int i = 0; i < array.size(); i++) {
-		vector[i] = array[i];
+		vector[i] = static_cast<T>(array[i]);
 	}
 
 	return vector;
